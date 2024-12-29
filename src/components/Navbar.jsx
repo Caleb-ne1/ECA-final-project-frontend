@@ -95,7 +95,9 @@ const Navbar = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="">Available Activities</a>
+                  <a href="/extracurricular activities">
+                    Available Activities
+                  </a>
                 </li>
                 <li>
                   <a href="">My Activities</a>
@@ -107,7 +109,7 @@ const Navbar = () => {
                   <a href="">Announcements</a>
                 </li>
               </ul>
-            ) : role === "teacher" ? (
+            ) : role === "teacher" || role === "coordinator" ? (
               <ul className="space-y-2 md:space-y-0 md:flex md:space-x-4">
                 <li>
                   <a href="/home">Home</a>
@@ -116,7 +118,7 @@ const Navbar = () => {
                   <a href="/student-dashboard">Teacher Dashboard</a>
                 </li>
                 <li>
-                  <a href="">My Activities</a>
+                  <a href="/activities">My Activities</a>
                 </li>
                 <li>
                   <a href="">Calendar</a>

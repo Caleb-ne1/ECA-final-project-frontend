@@ -46,7 +46,7 @@ const OTP = () => {
   };
 
   return (
-    <div className="otp_verification_container h-full w-full flex items-center justify-center">
+    <div className="otp_verification_container h-full w-full flex items-center justify-center pt-10">
       <h1 className="text-2xl font-bold text-center mb-4">Enter OTP</h1>
       <p className="text-center text-gray-700 mb-6">
         We have sent a verification code to {email}

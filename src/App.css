@@ -322,6 +322,19 @@
   justify-content: space-between;
 }
 
+hr {
+  border: 1px solid grey;
+  width: 95%;
+}
+
+/* users */
+
+.activity_select_opt {
+  border: 1px solid gray;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
 /* mobile  */
 @media (max-width: 768px) {
   .actions_bar {
@@ -380,4 +393,18 @@
   }
 
 
+}
+
+
+/* create activity */
+.create_activity_cont .group{
+  display: grid;
+  grid-template-columns: 20% 80%;
+}
+
+@media (max-width: 768px) {
+  .create_activity_cont .group{
+  display: grid;
+  grid-template-columns: 1fr;
+}
 }

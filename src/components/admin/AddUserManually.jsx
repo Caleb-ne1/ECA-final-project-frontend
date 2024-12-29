@@ -23,7 +23,7 @@ function AddUserManually() {
 
    try {
      const response = await axios.post(
-       "http://139.59.213.89:3005/api/user/admin/add-user",
+       "http://localhost:3005/api/user/admin/add-user",
        user
      );
 

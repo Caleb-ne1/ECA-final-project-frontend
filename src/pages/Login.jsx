@@ -26,11 +26,12 @@ const Login = () => {
       sessionStorage.setItem("user", JSON.stringify(userData));
 
       const userRole = response.data.user.role;
+
       if (userRole === "student" || userRole === "user") {
         navigate("/student-dashboard");
       } else if (userRole === "admin") {
         navigate("/admin-dashboard");
-      } else if (userRole === "teacher") {
+      } else if (userRole === "teacher" || userRole === "coordinator") {
         navigate("/staff-dashboard");
       } else {
         setError("Unknown role. Please contact support.");
