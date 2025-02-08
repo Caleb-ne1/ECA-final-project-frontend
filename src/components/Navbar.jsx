@@ -15,12 +15,21 @@ const Navbar = () => {
 
   // Fetch user role
   useEffect(() => {
-    const userRole = sessionStorage.getItem("user");
-
-    if (userRole) {
-      const userData = JSON.parse(userRole);
-      setRole(userData.role);
-    }
+    axios.get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
+      withCredentials: true, // Send cookies if you're using sessions
+    })
+    .then((response) => {
+      // Assuming the response contains the user data with a 'role' field
+      if (response.data && response.data.user && response.data.user.role) {
+        setRole(response.data.user.role); 
+      } else {
+        console.error("Role not found in user data.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user data:", error);
+      setRole(null); 
+    })
   }, []);
 
   // Logout
@@ -38,6 +47,7 @@ const Navbar = () => {
       );
 
       if (response.status === 200) {
+        sessionStorage.removeItem('user')
         window.location.href = "/";
       }
     } catch (error) {
@@ -46,7 +56,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className=" text-white shadow-lg p-4 flex flex-row justify-between fixed w-full top-0 z-40 navbar">
+    <nav className="fixed top-0 z-40 flex flex-row justify-between w-full p-4 text-white shadow-lg navbar">
       <div>
         <button
           onClick={toggleMenu}
@@ -76,7 +86,7 @@ const Navbar = () => {
             )}
           </svg>
         </button>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div
             className={`${
               isOpen ? "block" : "hidden"
@@ -84,7 +94,7 @@ const Navbar = () => {
           >
             {/* Dynamic Navigation */}
             {role === "student" || role === "user" ? (
-              <ul className="space-y-2 md:space-y-0 md:flex md:space-x-4 text-white">
+              <ul className="space-y-2 text-white md:space-y-0 md:flex md:space-x-4">
                 <li>
                   <a href="/home" className="hover:text-blue-500">
                     Home
@@ -159,18 +169,18 @@ const Navbar = () => {
       {/* Profile Section */}
       <div className="relative group ">
         <div className="flex flex-row gap-2">
-          <IoIosNotifications className="text-white w-8 h-8 cursor-pointer" />
-          <FaUser className="text-white w-8 h-8 cursor-pointer" />
+          <IoIosNotifications className="w-8 h-8 text-white cursor-pointer" />
+          <FaUser className="w-8 h-8 text-white cursor-pointer" />
         </div>
-        <div className="absolute hidden group-hover:block bg-white shadow-lg rounded-lg py-2 w-40 right-0">
-          <p className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+        <div className="absolute right-0 hidden w-40 py-2 bg-white rounded-lg shadow-lg group-hover:block">
+          <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
             <a href="user/profile">Profile</a>
           </p>
-          <p className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+          <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
             Settings
           </p>
           <p
-            className="px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
+            className="px-4 py-2 text-sm text-red-500 cursor-pointer hover:bg-red-100"
             onClick={userLogout}
           >
             Logout
