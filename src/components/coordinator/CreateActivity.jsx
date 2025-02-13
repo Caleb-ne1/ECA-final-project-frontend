@@ -674,7 +674,7 @@ const CreateActivity = () => {
               </div>
 
               {/* online link */}
-              {mode.mode === "online" && (
+              {mode === "online" && (
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700">
                     Zoom/Link URL:
