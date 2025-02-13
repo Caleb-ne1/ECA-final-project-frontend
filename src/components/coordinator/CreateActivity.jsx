@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from "react";
 import { MdNavigateNext } from "react-icons/md";
 import { IoIosAdd } from "react-icons/io";
 import { FaFilePdf } from "react-icons/fa6";
@@ -7,10 +7,9 @@ import { FaFile } from "react-icons/fa";
 import { FaFileImage } from "react-icons/fa";
 import { FaRegSave } from "react-icons/fa";
 import { RiDraftFill } from "react-icons/ri";
-
-
+import axios from "axios";
+import { ToastContainer, toast, Bounce } from "react-toastify";
 const CreateActivity = () => {
-  
   const [sections, setSections] = useState({
     isExpanded: false,
     isParticipantExpanded: false,
@@ -23,15 +22,15 @@ const CreateActivity = () => {
     isOrganizersExpanded: false,
   });
 
-   const toggleVisibility = (section) => {
-     setSections((prevSections) => ({
-       ...Object.keys(prevSections).reduce(
-         (acc, key) => ({ ...acc, [key]: false }),
-         {}
-       ),
-       [section]: !prevSections[section],
-     }));
-   };
+  const toggleVisibility = (section) => {
+    setSections((prevSections) => ({
+      ...Object.keys(prevSections).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      ),
+      [section]: !prevSections[section],
+    }));
+  };
 
   const [organizers, setOrganizers] = useState([
     {
@@ -43,7 +42,6 @@ const CreateActivity = () => {
       website: "",
     },
   ]);
-
 
   const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -66,13 +64,13 @@ const CreateActivity = () => {
 
     if (fileExtension === "pdf") {
       return (
-        <FaFilePdf className="text-red-500 w-6 h-6 hover:text-red-700 transition duration-200" />
+        <FaFilePdf className="w-6 h-6 text-red-500 transition duration-200 hover:text-red-700" />
       );
     }
 
     if (fileExtension === "docx" || fileExtension === "doc") {
       return (
-        <BsFiletypeDocx className="text-blue-500 w-6 h-6 hover:text-blue-700 transition duration-200" />
+        <BsFiletypeDocx className="w-6 h-6 text-blue-500 transition duration-200 hover:text-blue-700" />
       );
     }
 
@@ -83,13 +81,13 @@ const CreateActivity = () => {
       fileExtension === "svg"
     ) {
       return (
-        <FaFileImage className="text-blue-500 w-6 h-6 hover:text-blue-700 transition duration-200" />
+        <FaFileImage className="w-6 h-6 text-blue-500 transition duration-200 hover:text-blue-700" />
       );
     }
 
     // default file icon for other types
     return (
-      <FaFile className="text-gray-900 w-6 h-6 hover:text-gray-800 transition duration-200" />
+      <FaFile className="w-6 h-6 text-gray-900 transition duration-200 hover:text-gray-800" />
     );
   };
 
@@ -116,7 +114,7 @@ const CreateActivity = () => {
   const addFacilitator = () => {
     if (facilitatorData.email && facilitatorData.contact) {
       setFacilitatorsList([...facilitatorsList, facilitatorData]);
-      setFacilitatorData({ email: "", contact: "" }); 
+      setFacilitatorData({ email: "", contact: "" });
     }
   };
 
@@ -182,35 +180,145 @@ const CreateActivity = () => {
     setMaterials((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const [activityDetails, setActivityDetails] = useState({
-    name: "",
-    description: "",
-    activity_type: "",
-    date: "",
-    time: "",
-    location: "",
-    link: "",
-    image: "",
-    mode: "",
-    venue: "",
-  });
+  // states for registration deadline(date and time)
+  const [timedeadline, settimedeadline] = useState("");
+  const [datedeadline, setdatedeadline] = useState("");
+
+  // states for avtivities date and time
+  const [start_time, setstarttime] = useState("");
+  const [start_date, setstartdate] = useState("");
+
+  const [stop_time, setstoptime] = useState("");
+  const [stop_date, setstopdate] = useState("");
+
+  // to combine date and time
+  const ISO_date_time = (date, time) => {
+    if (date && time) {
+      // combine date and time
+      const dateTimeString = `${date}T${time}`;
+
+      // Create date object
+      const localDate = new Date(dateTimeString);
+
+      // Convert to ISO string (UTC time)
+      const isoDateTime = localDate.toISOString();
+
+      return isoDateTime;
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setActivityDetails((prev) => ({
-      ...prev,
+    setNewActivity((prevState) => ({
+      ...prevState,
       [name]: value,
     }));
   };
 
+  // states for activity
+  const [imageLink, setImageLink] = useState("");
+  const [activityName, setActivityName] = useState("");
+  const [activityDescription, setActivityDescription] = useState("");
+  const [activityType, setActivityType] = useState("");
+  const [eligibility, setEligibility] = useState("");
+  const [maxparticipants, setmaxparticipants] = useState("");
+  const [registrationDeadline, setRegistrationDeadline] = useState("");
+  const [start, setstart] = useState("");
+  const [stop, setstop] = useState("");
+  const [specialrequirements, setspecialrequirements] = useState([]);
+  const [venue, setvenue] = useState("");
+  const [virtuallink, setvirtuallink] = useState("");
+  const [mode, setmode] = useState("");
+  const [attendancerequirement, setattendancerequirement] = useState("");
+  const [attendanceMarkingManual, setAttendanceMarkingManual] = useState("");
+  const [attendanceMarkingQrcode, setAttendanceMarkingQrcode] = useState("");
+  const [activityReminders, setActivityReminders] = useState(true);
+  const [activityAlerts, setActivityAlerts] = useState(true);
+  const [facilitator, setFacilitator] = useState([]);
+  const [requiredMaterials, setRequiredMaterials] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [organizer, setOrganizer] = useState([]);
+
+  console.log(selectedFiles);
+
+  const createActivity = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+
+    // Append form fields
+    formData.append("image_link", imageLink);
+    formData.append("activity_name", activityName);
+    formData.append("activity_description", activityDescription);
+    formData.append("eligibility", eligibility);
+    formData.append("max_participants", maxparticipants);
+    formData.append(
+      "registration_deadline",
+      ISO_date_time(datedeadline, timedeadline)
+    );
+    formData.append("start", ISO_date_time(start_date, start_time));
+    formData.append("stop", ISO_date_time(stop_date, stop_time));
+    formData.append("special_requirements", specialRequirements);
+    formData.append("venue", venue);
+    formData.append("virtual_link", virtuallink);
+    formData.append("mode", mode);
+    formData.append("attendance_requirement", attendancerequirement);
+    formData.append("attendance_marking_manual", attendanceMarkingManual);
+    formData.append("attendance_marking_qrcode", attendanceMarkingQrcode);
+    formData.append("activity_reminders", activityReminders);
+    formData.append("announcements_alerts", activityAlerts);
+    formData.append("facilitator", JSON.stringify(facilitatorsList)); 
+    formData.append("required_materials", JSON.stringify(materials));
+    formData.append("organizers", JSON.stringify(organizers));
+
+    // append files
+    selectedFiles.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_APP_API_URL}/api/activity`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Activity created successfully!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        transition: Bounce,
+      });
+
+      setSelectedFiles([]), setActivityName(""), setActivityDescription("")
+    } catch (error) {
+      if (error.response) {
+        // access the error message from the response
+        const errorMessage = error.response.data.message || "An unknown error occurred";
+        toast.error(`Error: ${errorMessage}`);
+      } else {
+        toast.error(`Error: ${error.message}`);
+      }
+    }
+  };
+
   return (
     <div className="pt-16 pl-10 pr-10 create_activity_cont">
-      <h1 className="p-4 bg-gray-50 mt-2 mb-2">Create activity</h1>
+      <h1 className="p-4 mt-2 mb-2 bg-gray-50">Create activity</h1>
       <form className="flex flex-col gap-2">
         {/* general section */}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isExpanded")}
           >
             <MdNavigateNext
@@ -223,6 +331,18 @@ const CreateActivity = () => {
 
           {sections.isExpanded && (
             <div className="mt-4 space-y-6">
+              <div className="group">
+                <label className="block text-sm font-medium text-gray-700">
+                  Activity Image URL:
+                </label>
+                <input
+                  type="text"
+                  name="image_link"
+                  value={imageLink}
+                  onChange={(e) => setImageLink(e.target.value)}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
               {/* activity name */}
               <div className="group">
                 <label className="block text-sm font-medium text-gray-700">
@@ -230,8 +350,10 @@ const CreateActivity = () => {
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  value={activityName}
+                  onChange={(e) => setActivityName(e.target.value)}
+                  name="activity_name"
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
 
@@ -241,9 +363,11 @@ const CreateActivity = () => {
                   Description:
                 </label>
                 <textarea
-                  name="description"
+                  name="activity_description"
+                  value={activityDescription}
+                  onChange={(e) => setActivityDescription(e.target.value)}
                   rows="4"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 ></textarea>
               </div>
 
@@ -254,9 +378,48 @@ const CreateActivity = () => {
                 </label>
                 <input
                   type="text"
+                  value={activityType}
+                  onChange={(e) => setActivityType(e.target.value)}
                   name="activity_type"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <label htmlFor="registration_dateline">
+                  Registration deadline:{" "}
+                </label>
+                <div className="flex flex-col">
+                  <label
+                    htmlFor="start_date"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Date:
+                  </label>
+                  <input
+                    type="date"
+                    name="deadline_date"
+                    value={datedeadline}
+                    onChange={(e) => setdatedeadline(e.target.value)}
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label
+                    htmlFor="deadline_time"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Time:
+                  </label>
+                  <input
+                    type="time"
+                    name="deadline_time"
+                    value={timedeadline}
+                    onChange={(e) => settimedeadline(e.target.value)}
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -265,7 +428,7 @@ const CreateActivity = () => {
         {/* participant criteria section*/}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isParticipantExpanded")}
           >
             <MdNavigateNext
@@ -285,8 +448,10 @@ const CreateActivity = () => {
                 </label>
                 <input
                   type="text"
+                  value={eligibility}
                   name="eligibility"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  onChange={(e) => setEligibility(e.target.value)}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   placeholder=""
                 />
               </div>
@@ -299,7 +464,9 @@ const CreateActivity = () => {
                 <input
                   type="number"
                   name="max_participants"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  value={maxparticipants}
+                  onChange={(e) => setmaxparticipants(e.target.value)}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
 
@@ -314,13 +481,13 @@ const CreateActivity = () => {
                     {specialRequirements.map((specialRequirement, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center"
+                        className="flex items-center justify-between"
                       >
                         {specialRequirement}
                         <button
                           type="button"
                           onClick={() => removeRequirement(index)}
-                          className="text-red-500 ml-2"
+                          className="ml-2 text-red-500"
                         >
                           Remove
                         </button>
@@ -331,12 +498,12 @@ const CreateActivity = () => {
                   <input
                     type="text"
                     id="special_requirement"
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   />
                   <button
                     type="button"
                     onClick={addRequirements}
-                    className="mt-2 inline-block bg-blue-950 text-white py-2 px-4 rounded-md"
+                    className="inline-block px-4 py-2 mt-2 text-white rounded-md bg-blue-950"
                   >
                     Add
                   </button>
@@ -349,7 +516,7 @@ const CreateActivity = () => {
         {/* schedule and duration section*/}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isScheduleExpanded")}
           >
             <MdNavigateNext
@@ -381,8 +548,9 @@ const CreateActivity = () => {
                         <input
                           type="date"
                           name="start_date"
-                          id="start_date"
-                          className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          value={start_date}
+                          onChange={(e) => setstartdate(e.target.value)}
+                          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
 
@@ -396,8 +564,10 @@ const CreateActivity = () => {
                         <input
                           type="time"
                           name="start_time"
+                          value={start_time}
+                          onChange={(e) => setstarttime(e.target.value)}
                           id="start_time"
-                          className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
                     </div>
@@ -413,8 +583,10 @@ const CreateActivity = () => {
                         <input
                           type="date"
                           name="end_date"
+                          value={stop_date}
+                          onChange={(e) => setstopdate(e.target.value)}
                           id="end_date"
-                          className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
 
@@ -428,8 +600,10 @@ const CreateActivity = () => {
                         <input
                           type="time"
                           name="end_time"
+                          value={stop_time}
+                          onChange={(e) => setstoptime(e.target.value)}
                           id="end_time"
-                          className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
                     </div>
@@ -445,7 +619,7 @@ const CreateActivity = () => {
                 <input
                   type="number"
                   name="attendance_frequency"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -455,7 +629,7 @@ const CreateActivity = () => {
         {/* location and activity mode */}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isLocationExpanded")}
           >
             <MdNavigateNext
@@ -476,9 +650,9 @@ const CreateActivity = () => {
                 <input
                   type="text"
                   name="venue"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  value={activityDetails.venue}
-                  onChange={handleInputChange}
+                  value={venue}
+                  onChange={(e) => setvenue(e.target.value)}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
 
@@ -489,9 +663,9 @@ const CreateActivity = () => {
                 </label>
                 <select
                   name="mode"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  value={activityDetails.mode}
-                  onChange={handleInputChange}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  value={mode}
+                  onChange={(e) => setmode(e.target.value)}
                 >
                   <option value="">Select Mode</option>
                   <option value="online">Online</option>
@@ -500,7 +674,7 @@ const CreateActivity = () => {
               </div>
 
               {/* online link */}
-              {activityDetails.mode === "online" && (
+              {mode.mode === "online" && (
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700">
                     Zoom/Link URL:
@@ -508,9 +682,9 @@ const CreateActivity = () => {
                   <input
                     type="url"
                     name="link"
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    value={activityDetails.link}
-                    onChange={handleInputChange}
+                    className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    value={virtuallink}
+                    onChange={(e) => setvirtuallink(e.target.value)}
                   />
                 </div>
               )}
@@ -521,7 +695,7 @@ const CreateActivity = () => {
         {/* attendance tracking section*/}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isAttendanceExpanded")}
           >
             <MdNavigateNext
@@ -542,7 +716,9 @@ const CreateActivity = () => {
                 <input
                   type="text"
                   name="attendace_requirement"
-                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  value={attendancerequirement}
+                  onChange={(e) => setattendancerequirement(e.target.value)}
+                  className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
               </div>
 
@@ -556,8 +732,13 @@ const CreateActivity = () => {
                     <input
                       type="checkbox"
                       name="manually"
+                      value="manually"
                       id="manually"
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked
+                      onChange={(e) =>
+                        setAttendanceMarkingManual(e.target.value)
+                      }
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="manually"
@@ -571,8 +752,12 @@ const CreateActivity = () => {
                     <input
                       type="checkbox"
                       name="qrcode"
+                      value="qrcode"
                       id="qrcode"
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setAttendanceMarkingQrcode(e.target.value)
+                      }
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="qrcode"
@@ -590,7 +775,7 @@ const CreateActivity = () => {
         {/* notification and reminders section*/}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isNotificationExpanded")}
           >
             <MdNavigateNext
@@ -613,8 +798,9 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="activity_reminders"
+                      onChange={(e) => setActivityReminders(e.target.value)}
                       value={false}
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="disable"
@@ -628,8 +814,9 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="activity_reminders"
+                      onChange={(e) => setActivityReminders(e.target.value)}
                       value={true}
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="enable"
@@ -651,7 +838,8 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="announcements_alerts"
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={(e) => setActivityAlerts(e.target.value)}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="announcements alerts"
@@ -665,7 +853,8 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="announcements_alerts"
-                      className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      onChange={handleInputChange}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
                       htmlFor="announcements alerts"
@@ -683,7 +872,7 @@ const CreateActivity = () => {
         {/* facilitator information section*/}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isFacilitatorExpanded")}
           >
             <MdNavigateNext
@@ -695,7 +884,7 @@ const CreateActivity = () => {
           </p>
 
           {sections.isFacilitatorExpanded && (
-            <div className="group mt-4 ">
+            <div className="mt-4 group ">
               <div className="group">
                 <label className="block text-sm font-medium text-gray-700">
                   Add Facilitatot:
@@ -712,7 +901,7 @@ const CreateActivity = () => {
                       {facilitatorsList.map((facilitator, index) => (
                         <li
                           key={index}
-                          className="border border-gray-200 p-2 rounded-md flex justify-between items-center"
+                          className="flex items-center justify-between p-2 border border-gray-200 rounded-md"
                         >
                           <div className="text-sm font-medium text-gray-700">
                             <p>Email: {facilitator.email}</p>
@@ -746,7 +935,7 @@ const CreateActivity = () => {
                       id="email"
                       value={facilitatorData.email}
                       onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -765,7 +954,7 @@ const CreateActivity = () => {
                       id="facilitator_contact"
                       value={facilitatorData.contact}
                       onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -773,7 +962,7 @@ const CreateActivity = () => {
                   <button
                     type="button"
                     onClick={addFacilitator}
-                    className="w-20 bg-blue-950 text-white font-medium py-2 px-4 rounded-md shadow hover:bg-blue-900 focus:outline-none"
+                    className="w-20 px-4 py-2 font-medium text-white rounded-md shadow bg-blue-950 hover:bg-blue-900 focus:outline-none"
                   >
                     Add
                   </button>
@@ -786,7 +975,7 @@ const CreateActivity = () => {
         {/* resources and materials */}
         <div className="p-4 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isResourcesExpanded")}
           >
             <MdNavigateNext
@@ -809,13 +998,13 @@ const CreateActivity = () => {
                     {materials.map((material, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center"
+                        className="flex items-center justify-between"
                       >
                         {material}
                         <button
                           type="button"
                           onClick={() => removeMaterial(index)}
-                          className="text-red-500 ml-2"
+                          className="ml-2 text-red-500"
                         >
                           Remove
                         </button>
@@ -826,12 +1015,12 @@ const CreateActivity = () => {
                     type="text"
                     id="required_materials"
                     name="required_materials"
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   />
                   <button
                     onClick={addMaterial}
                     type="button"
-                    className="mt-2 inline-block bg-blue-950 text-white py-2 px-4 rounded-md"
+                    className="inline-block px-4 py-2 mt-2 text-white rounded-md bg-blue-950"
                   >
                     Add
                   </button>
@@ -839,18 +1028,18 @@ const CreateActivity = () => {
               </div>
 
               <div className="group">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   Attach Files:
                 </label>
 
                 <div>
                   {/* display selected files */}
                   {selectedFiles.length > 0 && (
-                    <ul className="mt-4 space-y-2 mb-4">
+                    <ul className="mt-4 mb-4 space-y-2">
                       {selectedFiles.map((file, index) => (
                         <li
                           key={index}
-                          className="flex items-center text-sm text-gray-700 border border-gray-200 rounded-md p-2"
+                          className="flex items-center p-2 text-sm text-gray-700 border border-gray-200 rounded-md"
                         >
                           {getFileIcon(file.name)}
                           <span className="ml-2">{file.name}</span>
@@ -866,7 +1055,7 @@ const CreateActivity = () => {
                     </ul>
                   )}
 
-                  <div className="relative w-full border border-dashed border-gray-300 rounded-md p-4 hover:border-blue-500 focus-within:border-blue-500">
+                  <div className="relative w-full p-4 border border-gray-300 border-dashed rounded-md hover:border-blue-500 focus-within:border-blue-500">
                     <div>
                       <input
                         type="file"
@@ -878,7 +1067,7 @@ const CreateActivity = () => {
                       <div className="flex flex-col items-center justify-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-10 w-10 text-gray-400 group-hover:text-blue-500"
+                          className="w-10 h-10 text-gray-400 group-hover:text-blue-500"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -890,7 +1079,7 @@ const CreateActivity = () => {
                             d="M3 16l5.5-5.5M14 7h5m-9 5l3.5 3.5m6-3l4-4m-9 10a9 9 0 110-18 9 9 0 010 18z"
                           />
                         </svg>
-                        <p className="text-gray-600 group-hover:text-blue-500 text-sm mt-2">
+                        <p className="mt-2 text-sm text-gray-600 group-hover:text-blue-500">
                           Drag and drop or click to upload
                         </p>
                       </div>
@@ -902,9 +1091,9 @@ const CreateActivity = () => {
           )}
         </div>
 
-        <div className="p-4 bg-gray-50 mb-10">
+        <div className="p-4 mb-10 bg-gray-50">
           <p
-            className="flex flex-row items-center cursor-pointer text-lg font-semibold text-gray-800"
+            className="flex flex-row items-center text-lg font-semibold text-gray-800 cursor-pointer"
             onClick={() => toggleVisibility("isOrganizersExpanded")}
           >
             <MdNavigateNext
@@ -932,7 +1121,7 @@ const CreateActivity = () => {
                       onChange={(e) =>
                         handleOrganizerChange(index, "name", e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -946,7 +1135,7 @@ const CreateActivity = () => {
                       onChange={(e) =>
                         handleOrganizerChange(index, "type", e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -960,7 +1149,7 @@ const CreateActivity = () => {
                       onChange={(e) =>
                         handleOrganizerChange(index, "contact", e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
 
@@ -974,7 +1163,7 @@ const CreateActivity = () => {
                       onChange={(e) =>
                         handleOrganizerChange(index, "bio", e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     ></textarea>
                   </div>
 
@@ -988,13 +1177,13 @@ const CreateActivity = () => {
                       onChange={(e) =>
                         handleOrganizerChange(index, "website", e.target.value)
                       }
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveOrganizer(index)}
-                    className="bg-red-500 hover:bg-red-700 text-white mt-2 inline-block py-2 px-4 rounded-md"
+                    className="inline-block px-4 py-2 mt-2 text-white bg-red-500 rounded-md hover:bg-red-700"
                   >
                     Remove Organizer
                   </button>
@@ -1006,7 +1195,7 @@ const CreateActivity = () => {
                 <button
                   type="button"
                   onClick={handleAddOrganizer}
-                  className="mt-2 inline-block bg-blue-950 text-white py-2 px-4 rounded-md"
+                  className="inline-block px-4 py-2 mt-2 text-white rounded-md bg-blue-950"
                 >
                   Add Organizer
                 </button>
@@ -1015,19 +1204,36 @@ const CreateActivity = () => {
           )}
         </div>
 
-        <div className="flex space-x-4 h-10 justify-center mb-10">
-          <button className="px-4 py-1 bg-blue-950 text-white rounded-md hover:bg-blue-900 focus:outline-none flex items-center gap-2 ">
-            <FaRegSave className="h-24 w-5" />
+        <div className="flex justify-center h-10 mb-10 space-x-4">
+          <button
+            type="submit"
+            onClick={createActivity}
+            className="flex items-center gap-2 px-4 py-1 text-white rounded-md bg-blue-950 hover:bg-blue-900 focus:outline-none "
+          >
+            <FaRegSave className="w-5 h-24" />
             Save
           </button>
 
-          <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+          <button className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
             Cancel
           </button>
         </div>
       </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </div>
   );
-}
+};
 
-export default CreateActivity
+export default CreateActivity;
