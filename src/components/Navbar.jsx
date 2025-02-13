@@ -152,7 +152,7 @@ const Navbar = () => {
                   <a href="/admin-dashboard">Dashboard</a>
                 </li>
                 <li>
-                  <a href="">Manage Activities</a>
+                  <a href="/admin/create activity">Manage Activities</a>
                 </li>
                 <li>
                   <a href="/manage_users">Manage Users</a>
@@ -169,7 +169,6 @@ const Navbar = () => {
       {/* Profile Section */}
       <div className="relative group ">
         <div className="flex flex-row gap-2">
-          <IoIosNotifications className="w-8 h-8 text-white cursor-pointer" />
           <FaUser className="w-8 h-8 text-white cursor-pointer" />
         </div>
         <div className="absolute right-0 hidden w-40 py-2 bg-white rounded-lg shadow-lg group-hover:block">

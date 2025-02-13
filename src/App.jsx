@@ -9,7 +9,7 @@ import UserDashboard from './components/user/UserDashboard';
 import CoordinatorDashboard from './components/coordinator/CoordinatorDashboard';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
-import Email from './pages/Email';
+import ForgotPassword from './pages/ForgotPassword';
 import OTP from './pages/OTP';
 import SetNewPassword from './pages/SetNewPassword';
 import ManageUser from './components/admin/ManageUser';
@@ -110,7 +110,7 @@ function App() {
       {!noNavbar.includes(location.pathname) && <Navbar />}
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/enter_your_email" element={<Email />} />
+        <Route path="/enter_your_email" element={<ForgotPassword />} />
         <Route path="/verify_otp" element={<OTP />} />
         <Route path="/set_new_password" element={<SetNewPassword />} />
         <Route path="/register" element={<RegistrationForm />} />
@@ -131,6 +131,7 @@ function App() {
         <Route path="/registration_pending" element={<RegistrationPending />} />
         <Route path="/activities" element={<Activity />} />
         <Route path="/create activity" element={<CreateActivity />} />
+        <Route path="/admin/create activity" element={<CreateActivity />} />
         <Route
           path="/extracurricular activities"
           element={<ExtracurricularActivities />}

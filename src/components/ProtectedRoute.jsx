@@ -21,7 +21,7 @@ const ProtectedRoute = () => {
   }, []);
 
   if (loading) {
-    return <p>Loading...</p>; // Or a spinner component
+    return <p>Loading...</p>; 
   }
 
   return user ? <Outlet /> : <Navigate to="/" />;
