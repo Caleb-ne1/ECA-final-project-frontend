@@ -1,72 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaMapMarkerAlt, FaVideo } from "react-icons/fa";
 
-const activities = [
-  {
-    id: 1,
-    name: "Campus Yoga Workshop",
-    date: "2024-12-31",
-    time: "10:00 AM",
-    location: "Zetech university, Main Campus",
-    image:
-      "https://img.freepik.com/free-photo/african-woman-doing-yoga-studio-pink-background_273443-746.jpg?ga=GA1.1.494808097.1735222370&semt=ais_hybrid",
-    isVirtual: false,
-  },
-  {
-    id: 2,
-    name: "Virtual Coding",
-    date: "2024-12-25",
-    time: "2:00 PM",
-    link: "https://example.com",
-    image:
-      "https://img.freepik.com/free-vector/laptop-with-program-code-isometric-icon-software-development-programming-applications-dark-neon_39422-971.jpg?ga=GA1.1.494808097.1735222370&semt=ais_hybrid",
-    isVirtual: true,
-  },
-  {
-    id: 3,
-    name: "Art & Design Exhibition",
-    date: "2025-01-15",
-    time: "5:00 PM",
-    location: "Mangu Campus, L2004",
-    image:
-      "https://img.freepik.com/free-vector/hand-drawn-art-exhibition-facebook-cover_23-2149508171.jpg?ga=GA1.1.494808097.1735222370&semt=ais_hybrid",
-    isVirtual: false,
-  },
-  {
-    id: 4,
-    name: "Alumni Networking Event",
-    date: "2024-12-10",
-    time: "6:00 PM",
-    location: "Thika Road Campus, University Auditorium",
-    image:
-      "https://img.freepik.com/premium-photo/business-executives-interacting-with-each-other-break_107420-73053.jpg?ga=GA1.1.494808097.1735222370&semt=ais_hybrid",
-    isVirtual: false,
-  },
-  {
-    id: 5,
-    name: "Online Health and Wellness Webinar",
-    date: "2024-12-20",
-    time: "4:00 PM",
-    link: "https://example.com/health-webinar",
-    image: "https://img.freepik.com/free-vector/webinar-template-world-health-day-celebration_23-2150200421.jpg?ga=GA1.1.494808097.1735222370&semt=ais_hybrid",
-    isVirtual: true,
-  },
-];
-
-
 const ExtracurricularActivities = () => {
+  const [activities, setActivities] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredActivities = activities.filter(
-    (activity) =>
-      activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.date.includes(searchQuery)
-  );
+  
+  useEffect(() => {
+    // fetch activities data from the API
+    axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/api/activities`) 
+      .then((response) => {
+        setActivities(response.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Failed to fetch activities.");
+        setLoading(false); 
+      });
+  }, []); 
+
+  // convert date and time
+  const formattedDateTime = (dateString) => {
+    const date = new Date(dateString);
+    
+    const formattedDate = date.toLocaleString();
+    
+    return formattedDate;
+    
+  }
+
+  const ViewActivity = (id) => {
+    window.location.href = `/extracurricular activity/view?id=${encodeURIComponent(id)}`
+  }
+  
+  // show all activities if no search query
+  const filteredActivities = searchQuery
+    ? activities.filter(
+        (activity) =>
+          activity.activity_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          activity.venue?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          activity.stop.includes(searchQuery)
+      )
+    : activities;
+
+  if (loading) {
+    return <div className="text-center text-gray-500">Loading activities...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 mt-16">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-6 mt-16 bg-gray-50">
+      <div className="mx-auto max-w-7xl">
         {/* search bar */}
         <div className="mb-6">
           <input
@@ -79,39 +70,34 @@ const ExtracurricularActivities = () => {
         </div>
 
         {/* activity grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className="bg-white rounded-lg overflow-hidden"
-            >
+            <div key={activity.id} className="overflow-hidden bg-white rounded-lg">
               <img
-                src={activity.image}
-                alt={activity.name}
-                className="w-full h-48 object-cover"
+                src={activity.image_link}
+                alt={activity.activity_name}
+                className="object-cover w-full h-48"
               />
               <div className="p-4">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  {activity.name}
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  <span className="font-medium">Date:</span> {activity.date}
+                <h2 className="text-lg font-semibold text-gray-800">{activity.activity_name}</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  <span className="font-medium">Date:</span> { formattedDateTime(activity.start) } -   { formattedDateTime(activity.start) }
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  <span className="font-medium">Time:</span> {activity.time}
+                <p className="mt-1 text-sm text-gray-600">
+                  <span className="font-medium">Registration deadline:</span> { formattedDateTime(activity.registration_deadline)}
                 </p>
-                {activity.isVirtual ? (
+                {activity.mode == "online" ? (
                   <div className="flex items-center mt-2 text-blue-600">
                     <FaVideo className="w-5 h-5 mr-2" />
-                    <span>Virtual Event</span>
+                    <a href={activity.virtual_link}>Virtual Event</a>
                   </div>
                 ) : (
                   <div className="flex items-center mt-2 text-green-600">
                     <FaMapMarkerAlt className="w-5 h-5 mr-2" />
-                    <span>{activity.location}</span>
+                    <span>{activity.venue}</span>
                   </div>
                 )}
-                <button className="mt-4 px-4 py-2 bg-blue-950	 text-white rounded-lg hover:bg-blue-900 transition">
+                <button className="px-4 py-2 mt-4 text-white transition rounded-lg bg-blue-950 hover:bg-blue-900" onClick={() => ViewActivity(activity.id)}>
                   View Details
                 </button>
               </div>
@@ -121,7 +107,7 @@ const ExtracurricularActivities = () => {
 
         {/* no results message */}
         {filteredActivities.length === 0 && (
-          <p className="text-center text-gray-500 mt-6">
+          <p className="mt-6 text-center text-gray-500">
             No activities match your search.
           </p>
         )}
@@ -131,3 +117,4 @@ const ExtracurricularActivities = () => {
 };
 
 export default ExtracurricularActivities;
+

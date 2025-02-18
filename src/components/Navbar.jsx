@@ -152,6 +152,11 @@ const Navbar = () => {
                   <a href="/admin-dashboard">Dashboard</a>
                 </li>
                 <li>
+                  <a href="/extracurricular activities">
+                    Available Activities
+                  </a>
+                </li>
+                <li>
                   <a href="/admin/create activity">Manage Activities</a>
                 </li>
                 <li>

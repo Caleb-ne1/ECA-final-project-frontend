@@ -137,7 +137,7 @@ function App() {
           element={<ExtracurricularActivities />}
         />
         <Route
-          path="/extracurricular activities/1"
+          path="/extracurricular activity/view"
           element={<ActivityDetailPage activity={activity} />}
         />
         <Route path="/terms and conditions" element={<TermsAndConditions />} />

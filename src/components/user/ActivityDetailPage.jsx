@@ -1,23 +1,64 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaVideo, FaCheckCircle } from "react-icons/fa";
 import { FaUserFriends, FaClipboardCheck, FaListUl } from "react-icons/fa";
 import { FaFilePdf } from "react-icons/fa";
 import { BsFiletypeDocx } from "react-icons/bs";
 import { FiFile } from "react-icons/fi";
+import axios from "axios";
+const ActivityDetailPage = () => {
+  const [activity, setActivity] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const ActivityDetailPage = ({ activity }) => {
+
+  // get id from url
+  const queryParams = new URLSearchParams(window.location.search);
+  const id = queryParams.get("id");
+
+   // convert date and time
+   const formattedDateTime = (dateString) => {
+    const date = new Date(dateString);
+    
+    const formattedDate = date.toLocaleString();
+    
+    return formattedDate;
+    
+  }
+  
+  useEffect(() => {
+    // Fetch activity data from the API
+    const fetchActivity = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_APP_API_URL}/api/activities/${id}`
+        );
+        setActivity(response.data);
+      } catch (error) {
+        console.error("Error fetching activity data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivity();
+  }, []);
+
+  console.log(activity);
 
   const renderFileIcon = (file) => {
+    if (!file || !file.name) {
+      return <FiFile className="w-6 h-6 text-gray-500" />;
+    }
+  
     const extension = file.name.split(".").pop().toLowerCase();
-
+  
     switch (extension) {
       case "pdf":
-        return <FaFilePdf className="text-red-500 w-6 h-6" />;
+        return <FaFilePdf className="w-6 h-6 text-red-500" />;
       case "docx":
       case "doc":
-        return <BsFiletypeDocx className="text-blue-500 w-6 h-6" />;
+        return <BsFiletypeDocx className="w-6 h-6 text-blue-500" />;
       default:
-        return <FiFile className="text-gray-500 w-6 h-6" />;
+        return <FiFile className="w-6 h-6 text-gray-500" />;
     }
   };
 
@@ -26,17 +67,17 @@ const ActivityDetailPage = ({ activity }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 mt-16">
-      <div className="max-w-4xl mx-auto bg-white overflow-hidden">
+    <div className="min-h-screen p-6 mt-16 bg-gray-50">
+      <div className="max-w-4xl mx-auto overflow-hidden bg-white">
         {/* image section */}
         <div className="relative">
           <img
-            src={activity.image}
-            alt={activity.name}
-            className="w-full h-64 object-cover"
+            src={activity.image_link}
+            alt={activity.activity_name}
+            className="object-cover w-full h-64"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <h1 className="text-white text-3xl font-bold">{activity.name}</h1>
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <h1 className="text-3xl font-bold text-white">{activity.activity_name}</h1>
           </div>
         </div>
 
@@ -45,25 +86,26 @@ const ActivityDetailPage = ({ activity }) => {
           <h2 className="text-2xl font-semibold text-gray-800">
             {activity.name}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            <span className="font-medium">Date:</span> {activity.date} -  {activity.date}
+          <p className="mt-1 text-sm text-gray-600">
+            <span className="font-medium">Date/Time:</span> {formattedDateTime(activity.start)} -{" "}
+            {formattedDateTime(activity.stop)}
           </p>
-          <p className="text-sm text-gray-600 mt-1">
-            <span className="font-medium">Time:</span> {activity.time}
+          <p className="mt-1 text-sm text-gray-600">
+            <span className="font-medium">Registered deadline:</span> {formattedDateTime(activity.registration_deadline)}
           </p>
 
-          <p className="text-gray-700 mt-4">{activity.description}</p>
+          <p className="mt-4 text-gray-700">{activity.activity_description}</p>
 
           {/* Online/Offline Mode */}
           <div className="mt-4">
             <h3 className="text-lg font-semibold text-gray-800">Mode</h3>
-            {activity.isVirtual ? (
+            {activity.mode == "online" ? (
               <div className="flex items-center mt-2 text-blue-600">
                 <FaVideo className="w-5 h-5 mr-2" />
                 <span>
                   Virtual Event - Join via{" "}
                   <a
-                    href={activity.link}
+                    href={activity.virtual_link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline"
@@ -75,7 +117,7 @@ const ActivityDetailPage = ({ activity }) => {
             ) : (
               <div className="flex items-center mt-2 text-green-600">
                 <FaMapMarkerAlt className="w-5 h-5 mr-2" />
-                <span>In-Person Event at {activity.location}</span>
+                <span>In-Person Event at {activity.venue}</span>
               </div>
             )}
           </div>
@@ -83,120 +125,126 @@ const ActivityDetailPage = ({ activity }) => {
           {/* organizers section */}
           <div className="mt-6">
             <h3 className="text-lg font-semibold text-gray-800">Organizers</h3>
-            <div className="mt-2 p-3 bg-gray-100 rounded-lg shadow-sm">
-              {activity.organizers.map((organizer, index) => (
-                <div key={index} className="flex items-center mb-4">
-                  {organizer.type === "person" && (
-                    <div className="flex items-center">
-                      <img
-                        src={organizer.photo}
-                        alt={organizer.name}
-                        className="w-16 h-16 rounded-full mr-4"
-                      />
-                      <div>
-                        <h4 className="text-gray-700 font-semibold">
-                          {organizer.name}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {organizer.title}
-                        </p>
-                        {organizer.bio && (
-                          <p className="text-sm text-gray-600 mt-2">
-                            {organizer.bio}
+            <div className="p-3 mt-2 bg-gray-100 rounded-lg shadow-sm">
+              {activity.organizers &&
+              activity.organizers.length > 0 ? (
+                activity.organizers.map((organizer, index) => (
+                  <div key={index} className="flex items-center mb-4">
+                    {organizer.type === "person" && (
+                      <div className="flex items-center">
+                        <img
+                          src={organizer.photo}
+                          alt={organizer.name}
+                          className="w-16 h-16 mr-4 rounded-full"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-700">
+                            {organizer.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {organizer.title}
                           </p>
-                        )}
-                        <div className="mt-2 space-x-4">
-                          {organizer.socialLinks && (
-                            <>
-                              {organizer.socialLinks.linkedin && (
-                                <a
-                                  href={organizer.socialLinks.linkedin}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600"
-                                >
-                                  LinkedIn
-                                </a>
-                              )}
-                              {organizer.socialLinks.twitter && (
-                                <a
-                                  href={organizer.socialLinks.twitter}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-400"
-                                >
-                                  Twitter
-                                </a>
-                              )}
-                            </>
+                          {organizer.bio && (
+                            <p className="mt-2 text-sm text-gray-600">
+                              {organizer.bio}
+                            </p>
                           )}
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          Contact: {organizer.contact}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {organizer.type === "university" && (
-                    <div className="flex items-center">
-                      <img
-                        src={organizer.photo}
-                        alt={organizer.name}
-                        className="w-16 h-16 rounded-full mr-4"
-                      />
-                      <div>
-                        <h4 className="text-gray-700 font-semibold">
-                          {organizer.name}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {organizer.title}
-                        </p>
-                        {organizer.bio && (
-                          <p className="text-sm text-gray-600 mt-2">
-                            {organizer.bio}
+                          <div className="mt-2 space-x-4">
+                            {organizer.socialLinks && (
+                              <>
+                                {organizer.socialLinks.linkedin && (
+                                  <a
+                                    href={organizer.socialLinks.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600"
+                                  >
+                                    LinkedIn
+                                  </a>
+                                )}
+                                {organizer.socialLinks.twitter && (
+                                  <a
+                                    href={organizer.socialLinks.twitter}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-400"
+                                  >
+                                    Twitter
+                                  </a>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Contact: {organizer.contact}
                           </p>
-                        )}
-                        <div className="mt-2">
-                          <a
-                            href={organizer.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline"
-                          >
-                            Visit {organizer.name} Website
-                          </a>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          Contact: {organizer.contact}
-                        </p>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+
+                    {organizer.type === "university" || "organizers" && (
+                      <div className="flex items-center">
+                        <img
+                          src="https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?uid=R108859324&ga=GA1.1.2084167895.1739460905&semt=ais_hybrid"
+                          alt={organizer.name}
+                          className="w-16 h-16 mr-4 rounded-full"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-700">
+                            {organizer.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {organizer.title}
+                          </p>
+                          {organizer.bio && (
+                            <p className="mt-2 text-sm text-gray-600">
+                              {organizer.bio}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            <a
+                              href={organizer.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline"
+                            >
+                              Visit {organizer.name} Website
+                            </a>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Contact: {organizer.contact}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p>No organizers listed.</p>
+              )}
             </div>
           </div>
 
           {/* required materials section */}
-          {activity.materials && activity.materials.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Required Materials
-              </h3>
-              <ul className="mt-2 space-y-2">
-                {activity.materials.map((material, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center p-3 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200 transition"
-                  >
-                    <FaCheckCircle className="text-green-500 w-5 h-5 mr-2" />
-                    <span className="text-gray-700">{material}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {activity.required_materials &&
+            activity.required_materials.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Required Materials
+                </h3>
+                <ul className="mt-2 space-y-2">
+                  {activity.required_materials.map((material, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
+                    >
+                      <FaCheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                      <span className="text-gray-700">{material}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )} 
 
           {/* participant criteria section */}
           <div className="mt-6">
@@ -204,11 +252,10 @@ const ActivityDetailPage = ({ activity }) => {
               Participant Criteria
             </h3>
             <div className="mt-4 space-y-4">
-
               {/* eligibility */}
               {activity.eligibility && (
                 <div className="flex items-start">
-                  <FaClipboardCheck className="w-5 h-5 text-blue-500 mt-1 mr-3" />
+                  <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-blue-500" />
                   <div>
                     <h4 className="text-sm font-medium text-gray-800">
                       Eligibility
@@ -221,45 +268,30 @@ const ActivityDetailPage = ({ activity }) => {
               )}
 
               {/* max participants */}
-              {activity.maxParticipants && (
+              {activity.max_participants && (
                 <div className="flex items-start">
-                  <FaUserFriends className="w-5 h-5 text-green-500 mt-1 mr-3" />
+                  <FaUserFriends className="w-5 h-5 mt-1 mr-3 text-green-500" />
                   <div>
                     <h4 className="text-sm font-medium text-gray-800">
                       Maximum Participants
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {activity.maxParticipants}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* age or grade restrictions */}
-              {activity.ageRestrictions && (
-                <div className="flex items-start">
-                  <FaListUl className="w-5 h-5 text-purple-500 mt-1 mr-3" />
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-800">
-                      Age or Grade Restrictions
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {activity.ageRestrictions}
+                      {activity.max_participants}
                     </p>
                   </div>
                 </div>
               )}
 
               {/* special requirements */}
-              {activity.specialRequirements && (
+              {/* {activity.special_requirements && (
                 <div className="flex items-start">
-                  <FaClipboardCheck className="w-5 h-5 text-red-500 mt-1 mr-3" />
+                  <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-red-500" />
                   <div>
                     <h4 className="text-sm font-medium text-gray-800">
                       Special Requirements
                     </h4>
-                    <ul className="list-disc list-inside text-sm text-gray-600">
-                      {activity.specialRequirements.map(
+                    <ul className="text-sm text-gray-600 list-disc list-inside">
+                      {activity.special_requirements.map(
                         (requirement, index) => (
                           <li key={index}>{requirement}</li>
                         )
@@ -267,7 +299,7 @@ const ActivityDetailPage = ({ activity }) => {
                     </ul>
                   </div>
                 </div>
-              )}
+              )}   */}
             </div>
           </div>
 
@@ -276,19 +308,20 @@ const ActivityDetailPage = ({ activity }) => {
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-800">Files</h3>
               <ul className="mt-2 space-y-2">
-                {activity.files.map((file, index) => (
+                {activity.files.map((file) => (
                   <li
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200 transition"
+                    className="flex items-center justify-between p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
                   >
                     <div className="flex items-center">
-                      {renderFileIcon(file)}
-                      <span className="ml-3 text-gray-700">{file.name}</span>
+                      {renderFileIcon(file.fileName)}
+                      <span className="ml-3 text-gray-700">
+                        {file.fileName}
+                      </span>
                     </div>
                     <a
-                      href={file.url}
+                      href={file.fileUrl}
                       download
-                      className="text-blue-500 hover:underline text-sm"
+                      className="text-sm text-blue-500 hover:underline"
                     >
                       Download
                     </a>
@@ -298,7 +331,7 @@ const ActivityDetailPage = ({ activity }) => {
             </div>
           )}
 
-          <button className="mt-6 px-6 py-2 bg-blue-950	 text-white rounded-lg shadow hover:bg-blue-900 transition duration-200">
+          <button className="px-6 py-2 mt-6 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900">
             Register Now
           </button>
         </div>
@@ -308,4 +341,3 @@ const ActivityDetailPage = ({ activity }) => {
 };
 
 export default ActivityDetailPage;
-
