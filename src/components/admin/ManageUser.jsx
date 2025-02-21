@@ -14,6 +14,9 @@ import { GrFormView } from "react-icons/gr";
 import { FaEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
 import StatusUpdateModal from './StatusUpdateModal';
+import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+
 const ManageUser = () => {
   const [showFilterBox, setShowFilterBox] = useState(false);
   const [showExportBox, setShowExportBox] = useState(false);
@@ -159,7 +162,7 @@ const ManageUser = () => {
   };
 
   return (
-    <div className="mt-20 flex flex-col manage_users">
+    <div className="flex flex-col mt-20 manage_users">
       <div>
         {/* search bar */}
         <div className="flex justify-center p-4 search_bar">
@@ -207,7 +210,7 @@ const ManageUser = () => {
 
               {/* Filter Floating Box */}
               {showFilterBox && (
-                <div className="absolute right-42 z-10 w-56 p-4 bg-white border border-gray-300 rounded-lg shadow-md top-56">
+                <div className="absolute z-10 w-56 p-4 bg-white border border-gray-300 rounded-lg shadow-md right-42 top-56">
                   <p className="mb-3 font-semibold text-gray-700">By Role</p>
                   <form className="space-y-2">
                     {[
@@ -274,7 +277,7 @@ const ManageUser = () => {
         </div>
 
         {/* users table */}
-        <div className="p-6 bg-gray-100 mt-2 mb-5 overflow-x-auto">
+        <div className="p-6 mt-2 mb-5 overflow-x-auto bg-gray-100">
           <table className="w-full bg-white border border-collapse border-gray-300 rounded-md table-auto">
             <thead>
               <tr className="text-gray-700 bg-gray-200">
@@ -394,23 +397,23 @@ const ManageUser = () => {
                         {showActionBoxIndex === index && (
                           <div
                             ref={actionBoxRef}
-                            className="flex flex-col gap-2 absolute right-0 z-10 w-32 p-2 mt-2 bg-white border border-gray-300 rounded-md shadow-md top-9"
+                            className="absolute right-0 z-10 flex flex-col w-32 gap-2 p-2 mt-2 bg-white border border-gray-300 rounded-md shadow-md top-9"
                           >
-                            <button className="flex flex-row items-center gap-2 p-1 rounded bg-blue-600 hover:bg-blue-500 text-white" 
+                            <button className="flex flex-row items-center gap-2 p-1 text-white bg-blue-600 rounded hover:bg-blue-500" 
                             onClick={() => handleViewUser(user.id)}
                             >
                               <GrFormView />
                               View
                             </button>
                             <button
-                              className="flex flex-row items-center gap-2 p-1 bg-yellow-500 hover:bg-yellow-400 rounded"
+                              className="flex flex-row items-center gap-2 p-1 bg-yellow-500 rounded hover:bg-yellow-400"
                               onClick={() => handleEditUser(user.id)}
                             >
                               <FaEdit />
                               Edit
                             </button>
                             <button
-                              className="flex flex-row items-center gap-2 p-1 text-white bg-red-600 hover:bg-red-500 rounded"
+                              className="flex flex-row items-center gap-2 p-1 text-white bg-red-600 rounded hover:bg-red-500"
                               onClick={() => handleDeleteClick(user.id)}
                             >
                               <MdDeleteOutline />

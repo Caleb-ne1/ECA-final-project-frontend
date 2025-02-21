@@ -120,7 +120,7 @@ const Activity = () => {
               {/* no results message */}
               {filteredActivities.length === 0 && (
                 <p className="mt-6 text-center text-gray-500">
-                  No activities match your search.
+                  No activities
                 </p>
               )}
             </div>

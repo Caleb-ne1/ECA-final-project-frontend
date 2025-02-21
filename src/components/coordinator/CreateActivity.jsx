@@ -230,7 +230,7 @@ const CreateActivity = () => {
   const [virtuallink, setvirtuallink] = useState("");
   const [mode, setmode] = useState("");
   const [attendancerequirement, setattendancerequirement] = useState("");
-  const [attendanceMarkingManual, setAttendanceMarkingManual] = useState("");
+  const [attendanceMarkingManual, setAttendanceMarkingManual] = useState("manually");
   const [attendanceMarkingQrcode, setAttendanceMarkingQrcode] = useState("");
   const [activityReminders, setActivityReminders] = useState(true);
   const [activityAlerts, setActivityAlerts] = useState(true);
@@ -284,6 +284,7 @@ const CreateActivity = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          withCredentials: true,
         }
       );
 
@@ -471,7 +472,7 @@ const CreateActivity = () => {
               </div>
 
               {/* special requirements */}
-              <div className="group">
+              {/* <div className="group">
                 <label className="block text-sm font-medium text-gray-700">
                   Special Requirements:
                 </label>
@@ -508,7 +509,7 @@ const CreateActivity = () => {
                     Add
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
         </div>
@@ -733,8 +734,7 @@ const CreateActivity = () => {
                       type="checkbox"
                       name="manually"
                       value="manually"
-                      id="manually"
-                      checked
+                      checked = { attendanceMarkingManual == "manually" }
                       onChange={(e) =>
                         setAttendanceMarkingManual(e.target.value)
                       }
@@ -754,6 +754,7 @@ const CreateActivity = () => {
                       name="qrcode"
                       value="qrcode"
                       id="qrcode"
+                      checked = { attendanceMarkingQrcode == "qrcode"}
                       onChange={(e) =>
                         setAttendanceMarkingQrcode(e.target.value)
                       }
@@ -800,6 +801,7 @@ const CreateActivity = () => {
                       name="activity_reminders"
                       onChange={(e) => setActivityReminders(e.target.value)}
                       value={false}
+                      checked = { activityReminders == false }
                       className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
@@ -816,6 +818,7 @@ const CreateActivity = () => {
                       name="activity_reminders"
                       onChange={(e) => setActivityReminders(e.target.value)}
                       value={true}
+                      checked = {activityReminders == true }
                       className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
@@ -838,7 +841,9 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="announcements_alerts"
+                      value={false}
                       onChange={(e) => setActivityAlerts(e.target.value)}
+                      checked = { activityAlerts == false }
                       className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
@@ -853,7 +858,9 @@ const CreateActivity = () => {
                     <input
                       type="radio"
                       name="announcements_alerts"
+                      value={ true }
                       onChange={(e) => setActivityAlerts(e.target.value)}
+                      checked = { activityAlerts == true }
                       className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label
