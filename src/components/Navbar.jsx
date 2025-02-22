@@ -111,7 +111,7 @@ const Navbar = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="">My Activities</a>
+                  <a href="/my/activities">My activities</a>
                 </li>
                 <li>
                   <a href="">Calendar</a>
@@ -134,8 +134,9 @@ const Navbar = () => {
                 </li>
 
                 <li>
-                  <a href="/activities">My Activities</a>
+                  <a href="/my/activities">My activities</a>
                 </li>
+                
                 <li>
                   <a href="">Calendar</a>
                 </li>
@@ -157,7 +158,10 @@ const Navbar = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="/admin/create activity">Manage Activities</a>
+                  <a href="/my/activities">My activities</a>
+                </li>
+                <li>
+                  <a href="/manage activities">Manage Activities</a>
                 </li>
                 <li>
                   <a href="/manage_users">Manage Users</a>
