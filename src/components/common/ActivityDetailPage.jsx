@@ -397,7 +397,6 @@ const ActivityDetailPage = () => {
                 className="w-6 h-6 transition cursor-pointer hover:text-red-600"
                 onClick={() => deleteActivity(activity.id)}
               />
-              {role}
             </div>
             ) : null }
           </div>
