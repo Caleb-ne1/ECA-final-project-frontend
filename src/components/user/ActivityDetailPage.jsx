@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const ActivityDetailPage = () => {
+  const [role, setRole] = useState("");
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -91,6 +92,24 @@ const ActivityDetailPage = () => {
       }
     });
   };
+
+   // Fetch user role
+   useEffect(() => {
+    axios.get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
+      withCredentials: true,  
+    })
+    .then((response) => {
+      if (response.data && response.data.user && response.data.user.role) {
+        setRole(response.data.user.role); 
+      } else {
+        console.error("Role not found in user data.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user data:", error);
+      setRole(null); 
+    })
+  }, []);
 
   if (!activity) {
     return <p className="text-center text-gray-500">No activity selected.</p>;
@@ -370,14 +389,17 @@ const ActivityDetailPage = () => {
             <button className="px-6 py-2 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900">
               Register Now
             </button>
-
+            
+            {role === "admin" || role === "staff" || role === "coordinator" ? (
             <div className="flex items-center gap-4 text-gray-600">
               <MdEdit className="w-6 h-6 transition cursor-pointer hover:text-blue-600" />
               <MdDelete
                 className="w-6 h-6 transition cursor-pointer hover:text-red-600"
                 onClick={() => deleteActivity(activity.id)}
               />
+              {role}
             </div>
+            ) : null }
           </div>
         </div>
       </div>
