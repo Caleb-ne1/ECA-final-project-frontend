@@ -9,7 +9,7 @@ import { FaRegSave } from "react-icons/fa";
 import { RiDraftFill } from "react-icons/ri";
 import axios from "axios";
 import { ToastContainer, toast, Bounce } from "react-toastify";
-const CreateActivity = () => {
+const EditActivity = () => {
   const [sections, setSections] = useState({
     isExpanded: false,
     isParticipantExpanded: false,
@@ -58,37 +58,26 @@ const CreateActivity = () => {
     );
   };
 
-  // get file icon based on the file type
   const getFileIcon = (fileName) => {
+    if (!fileName || typeof fileName !== "string") {
+      return <FaFile className="w-6 h-6 text-gray-900" />;
+    }
+
     const fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileExtension === "pdf") {
-      return (
-        <FaFilePdf className="w-6 h-6 text-red-500 transition duration-200 hover:text-red-700" />
-      );
+      return <FaFilePdf className="w-6 h-6 text-red-500" />;
     }
 
-    if (fileExtension === "docx" || fileExtension === "doc") {
-      return (
-        <BsFiletypeDocx className="w-6 h-6 text-blue-500 transition duration-200 hover:text-blue-700" />
-      );
+    if (["doc", "docx"].includes(fileExtension)) {
+      return <BsFiletypeDocx className="w-6 h-6 text-blue-500" />;
     }
 
-    if (
-      fileExtension === "jpg" ||
-      fileExtension === "jpeg" ||
-      fileExtension === "png" ||
-      fileExtension === "svg"
-    ) {
-      return (
-        <FaFileImage className="w-6 h-6 text-blue-500 transition duration-200 hover:text-blue-700" />
-      );
+    if (["jpg", "jpeg", "png", "svg"].includes(fileExtension)) {
+      return <FaFileImage className="w-6 h-6 text-blue-500" />;
     }
 
-    // default file icon for other types
-    return (
-      <FaFile className="w-6 h-6 text-gray-900 transition duration-200 hover:text-gray-800" />
-    );
+    return <FaFile className="w-6 h-6 text-gray-900" />;
   };
 
   const handleOrganizerChange = (index, field, value) => {
@@ -240,9 +229,141 @@ const CreateActivity = () => {
   const [files, setFiles] = useState([]);
   const [organizer, setOrganizer] = useState([]);
 
-  console.log(selectedFiles);
+  // get time from ISO string
+  const getTimeISO = (isoString) => {
+    const date = new Date(isoString);
+    return date.toISOString().split("T")[1].slice(0, 8);
+  };
 
-  const createActivity = async (e) => {
+  const getDateISO = (isoString) => {
+    return isoString.split("T")[0];
+  };
+
+  // get id from url
+  const queryParams = new URLSearchParams(window.location.search);
+  const id = queryParams.get("id");
+
+  const fetchActivityDetails = async (id, setStateFunctions) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_APP_API_URL}/api/activities/${id}`
+      );
+
+      if (!response.data) {
+        console.error("No data received for activity.");
+        return;
+      }
+
+      console.log("Activity Data:", response.data);
+
+      // Destructure response data for better readability
+      const {
+        image_link,
+        activity_name,
+        activity_description,
+        activity_type,
+        registration_deadline,
+        eligibility,
+        max_participants,
+        start,
+        stop,
+        venue,
+        mode,
+        attendance_requirement,
+        attendance_marking_manual,
+        attendance_marking_qrcode,
+        activity_reminders,
+        facilitator,
+        required_materials,
+        files,
+        organizers,
+      } = response.data;
+
+      // Destructure state update functions
+      const {
+        setImageLink,
+        setActivityName,
+        setActivityType,
+        setActivityDescription,
+        settimedeadline,
+        setdatedeadline,
+        setEligibility,
+        setmaxparticipants,
+        setstartdate,
+        setstarttime,
+        setstopdate,
+        setstoptime,
+        setvenue,
+        setmode,
+        setattendancerequirement,
+        setAttendanceMarkingManual,
+        setAttendanceMarkingQrcode,
+        setActivityReminders,
+        setActivityAlerts,
+        setFacilitatorsList,
+        setMaterials,
+        setSelectedFiles,
+        setOrganizers,
+      } = setStateFunctions;
+
+      // Setting states
+      setImageLink(image_link);
+      setActivityType(activity_type);
+      setActivityName(activity_name);
+      setActivityDescription(activity_description);
+      settimedeadline(getTimeISO(registration_deadline));
+      setdatedeadline(getDateISO(registration_deadline));
+      setEligibility(eligibility);
+      setmaxparticipants(max_participants);
+      setstartdate(getDateISO(start));
+      setstarttime(getTimeISO(start));
+      setstopdate(getDateISO(stop));
+      setstoptime(getTimeISO(stop));
+      setvenue(venue || "");
+      setmode(mode || "");
+      setattendancerequirement(attendance_requirement);
+      setAttendanceMarkingManual(attendance_marking_manual);
+      setAttendanceMarkingQrcode(attendance_marking_qrcode);
+      setActivityReminders(activity_reminders);
+      setActivityAlerts(activity_reminders);
+      setFacilitatorsList(facilitator);
+      setMaterials(required_materials);
+      setSelectedFiles(files);
+      setOrganizers(organizers);
+    } catch (error) {
+      console.error("Error fetching activity details:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivityDetails(id, {
+      setImageLink,
+      setActivityName,
+      setActivityType,
+      setActivityDescription,
+      settimedeadline,
+      setdatedeadline,
+      setEligibility,
+      setmaxparticipants,
+      setstartdate,
+      setstarttime,
+      setstopdate,
+      setstoptime,
+      setvenue,
+      setmode,
+      setattendancerequirement,
+      setAttendanceMarkingManual,
+      setAttendanceMarkingQrcode,
+      setActivityReminders,
+      setActivityAlerts,
+      setFacilitatorsList,
+      setMaterials,
+      setSelectedFiles,
+      setOrganizers,
+    });
+  }, [id]);
+
+  const editActivity = async (e, activity_id) => {
     e.preventDefault();
 
     const formData = new FormData();
@@ -250,7 +371,6 @@ const CreateActivity = () => {
     // Append form fields
     formData.append("image_link", imageLink);
     formData.append("activity_name", activityName);
-    formData.append("activity_type", activityType);
     formData.append("activity_description", activityDescription);
     formData.append("eligibility", eligibility);
     formData.append("max_participants", maxparticipants);
@@ -273,14 +393,14 @@ const CreateActivity = () => {
     formData.append("required_materials", JSON.stringify(materials));
     formData.append("organizers", JSON.stringify(organizers));
 
-    // append files
+    // Append files
     selectedFiles.forEach((file) => {
       formData.append("files", file);
     });
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_APP_API_URL}/api/activity`,
+      await axios.patch(
+        `${import.meta.env.VITE_APP_API_URL}/api/activities/${activity_id}`,
         formData,
         {
           headers: {
@@ -290,7 +410,7 @@ const CreateActivity = () => {
         }
       );
 
-      toast.success("Activity created successfully!", {
+      toast.success("Activity updated successfully!", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -301,14 +421,11 @@ const CreateActivity = () => {
         theme: "colored",
         transition: Bounce,
       });
-
-      setSelectedFiles([]), setActivityName(""), setActivityDescription("");
     } catch (error) {
       if (error.response) {
-        // access the error message from the response
         const errorMessage =
           error.response.data.message || "An unknown error occurred";
-        toast.error(`Error: ${errorMessage}`);
+        toast.error(`${errorMessage}`);
       } else {
         toast.error(`Error: ${error.message}`);
       }
@@ -337,7 +454,7 @@ const CreateActivity = () => {
             <div className="mt-4 space-y-6">
               <div className="group">
                 <label className="block text-sm font-medium text-gray-700">
-                  Activity Image URL:
+                  Activity Image background URL:
                 </label>
                 <input
                   type="text"
@@ -1051,12 +1168,16 @@ const CreateActivity = () => {
                           key={index}
                           className="flex items-center p-2 text-sm text-gray-700 border border-gray-200 rounded-md"
                         >
-                          {getFileIcon(file.name)}
-                          <span className="ml-2">{file.name}</span>
+                          {getFileIcon(file?.fileName || file?.name)}
+                          <span className="ml-2">
+                            {file?.fileName || file?.name || "Unnamed File"}
+                          </span>
                           <button
                             type="button"
                             className="ml-4 text-red-500 hover:text-red-700"
-                            onClick={() => removeFile(file.name)}
+                            onClick={() =>
+                              removeFile(file?.fileName || file?.name)
+                            }
                           >
                             Remove
                           </button>
@@ -1244,7 +1365,7 @@ const CreateActivity = () => {
         <div className="flex justify-center h-10 mb-10 space-x-4">
           <button
             type="submit"
-            onClick={createActivity}
+            onClick={(e) => editActivity(e, id)}
             className="flex items-center gap-2 px-4 py-1 text-white rounded-md bg-blue-950 hover:bg-blue-900 focus:outline-none "
           >
             <FaRegSave className="w-5 h-24" />
@@ -1273,4 +1394,4 @@ const CreateActivity = () => {
   );
 };
 
-export default CreateActivity;
+export default EditActivity;
