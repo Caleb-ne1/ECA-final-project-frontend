@@ -9,10 +9,15 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
+import QrCodeCard from "./QrCodeCard";
 import { useNavigate } from "react-router-dom";
+import AttendancePage from "./AttendancePage";
+import QrCodeScanner from "./QrCodeScanner";
+
 const ActivityDetailPage = () => {
   const [role, setRole] = useState("");
   const [activity, setActivity] = useState(null);
+  const [activeTab, setActiveTab] = useState("details");
   const [loading, setLoading] = useState(true);
 
   // get id from url
@@ -67,6 +72,12 @@ const ActivityDetailPage = () => {
   };
 
   const navigate = useNavigate();
+  
+  // edit activity
+  const editActivity = async (id) => {
+    window.location.href = `/activity/edit?id=${encodeURIComponent(id)}`;
+  }
+      
   // delete activity
   const deleteActivity = async (id) => {
     Swal.fire({
@@ -93,22 +104,23 @@ const ActivityDetailPage = () => {
     });
   };
 
-   // Fetch user role
-   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
-      withCredentials: true,  
-    })
-    .then((response) => {
-      if (response.data && response.data.user && response.data.user.role) {
-        setRole(response.data.user.role); 
-      } else {
-        console.error("Role not found in user data.");
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching user data:", error);
-      setRole(null); 
-    })
+  // Fetch user role
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.data && response.data.user && response.data.user.role) {
+          setRole(response.data.user.role);
+        } else {
+          console.error("Role not found in user data.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        setRole(null);
+      });
   }, []);
 
   if (!activity) {
@@ -117,229 +129,226 @@ const ActivityDetailPage = () => {
 
   return (
     <div className="min-h-screen p-6 mt-16 bg-gray-50">
-      <div className="max-w-4xl mx-auto overflow-hidden bg-white">
-        {/* image section */}
-        <div className="relative">
-          <img
-            src={activity.image_link}
-            alt={activity.activity_name}
-            className="object-cover w-full h-64"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <h1 className="text-3xl font-bold text-white">
-              {activity.activity_name}
-            </h1>
-          </div>
-        </div>
+      {/* Tabs */}
+      <div className="flex justify-center pb-2 space-x-6 overflow-auto border-b">
+        {["details", "attendance", "qrcode", "QrCode Scanner"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`text-sm font-medium px-4 py-2 rounded-t-lg transition-all duration-300 
+              ${
+                activeTab === tab
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
 
-        {/* details section */}
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            {activity.name}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            <span className="font-medium">Date/Time:</span>{" "}
-            {formattedDateTime(activity.start)} -{" "}
-            {formattedDateTime(activity.stop)}
-          </p>
-          <p className="mt-1 text-sm text-gray-600">
-            <span className="font-medium">Registered deadline:</span>{" "}
-            {formattedDateTime(activity.registration_deadline)}
-          </p>
-          <p className="mt-1 text-sm text-gray-600">
-            <span className="font-medium">Activity type:</span> {activity.type}
-          </p>
-
-          <p className="mt-4 text-gray-700">{activity.activity_description}</p>
-
-          {/* Online/Offline Mode */}
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold text-gray-800">Mode</h3>
-            {activity.mode == "online" ? (
-              <div className="flex items-center mt-2 text-blue-600">
-                <FaVideo className="w-5 h-5 mr-2" />
-                <span>
-                  Virtual Event - Join via{" "}
-                  <a
-                    href={activity.virtual_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    Link
-                  </a>
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center mt-2 text-green-600">
-                <FaMapMarkerAlt className="w-5 h-5 mr-2" />
-                <span>In-Person Event at {activity.venue}</span>
-              </div>
-            )}
+      {activeTab === "details" && (
+        <div className="max-w-4xl mx-auto overflow-hidden bg-white">
+          {/* image section */}
+          <div className="relative">
+            <img
+              src={activity.image_link}
+              alt={activity.activity_name}
+              className="object-cover w-full h-64"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <h1 className="text-3xl font-bold text-white">
+                {activity.activity_name}
+              </h1>
+            </div>
           </div>
 
-          {/* organizers section */}
-          <div className="mt-6">
-            {activity.organizers &&
-              activity.organizers.filter((organizer) =>
-                Object.values(organizer).some((value) => value !== "")
-              ).length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Organizers
-                  </h3>
-                  <div className="p-3 mt-2 bg-gray-100 rounded-lg shadow-sm">
-                    {activity.organizers
-                      .filter((organizer) =>
-                        Object.values(organizer).some((value) => value !== "")
-                      )
-                      .map((organizer, index) => (
-                        <div key={index} className="flex items-center mb-4">
-                          {organizer.type === "" && (
-                            <div className="flex items-center">
-                              <img
-                                src={
-                                  organizer.photo ||
-                                  "https://img.freepik.com/free-photo/user-profile-icon-front-side_187299-39596.jpg?uid=R108859324&ga=GA1.1.2084167895.1739460905&semt=ais_hybrid"
-                                } 
-                                alt={organizer.name}
-                                className="w-16 h-16 mr-4 rounded-full"
-                              />
-                              <div>
-                                {organizer.name && (
-                                  <h4 className="font-semibold text-gray-700">
-                                    {organizer.name}
-                                  </h4>
-                                )}
-                                {organizer.title && (
-                                  <p className="text-sm text-gray-600">
-                                    {organizer.title}
-                                  </p>
-                                )}
-                                {organizer.bio && (
-                                  <p className="mt-2 text-sm text-gray-600">
-                                    {organizer.bio}
-                                  </p>
-                                )}
-                                {organizer.contact && (
-                                  <p className="text-sm text-gray-600">
-                                    Contact: {organizer.contact}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )}
+          {/* details section */}
+          <div className="p-6">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {activity.name}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              <span className="font-medium">Date/Time:</span>{" "}
+              {formattedDateTime(activity.start)} -{" "}
+              {formattedDateTime(activity.stop)}
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              <span className="font-medium">Registered deadline:</span>{" "}
+              {formattedDateTime(activity.registration_deadline)}
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              <span className="font-medium">Activity type:</span>{" "}
+              {activity.activity_type}
+            </p>
 
-                          {(organizer.type === "university" ||
-                            organizer.type === "organizers" || organizer.type === "person") && (
-                            <div className="flex items-center">
+            <p className="mt-4 text-gray-700">
+              {activity.activity_description}
+            </p>
+
+            {/* Online/Offline Mode */}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-gray-800">Mode</h3>
+              {activity.mode == "online" ? (
+                <div className="flex items-center mt-2 text-blue-600">
+                  <FaVideo className="w-5 h-5 mr-2" />
+                  <span>
+                    Virtual Event - Join via{" "}
+                    <a
+                      href={activity.virtual_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Link
+                    </a>
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center mt-2 text-green-600">
+                  <FaMapMarkerAlt className="w-5 h-5 mr-2" />
+                  <span>In-Person Event at {activity.venue}</span>
+                </div>
+              )}
+            </div>
+
+            {/* organizers section */}
+            <div className="mt-6">
+              {activity.organizers &&
+                activity.organizers.filter((organizer) =>
+                  Object.values(organizer).some((value) => value !== "")
+                ).length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Organizers
+                    </h3>
+                    <div className="p-3 mt-2 bg-gray-100 rounded-lg shadow-sm">
+                      {activity.organizers
+                        .filter((organizer) =>
+                          Object.values(organizer).some((value) => value !== "")
+                        )
+                        .map((organizer, index) => (
+                          <div key={index} className="flex items-center mb-4">
+                            <div className="flex items-center p-4">
                               <img
                                 src="https://img.freepik.com/free-photo/user-profile-icon-front-side_187299-39596.jpg?uid=R108859324&ga=GA1.1.2084167895.1739460905&semt=ais_hybrid"
                                 alt={organizer.name}
-                                className="w-16 h-16 mr-4 rounded-full"
+                                className="w-20 h-20 border-2 border-gray-300 rounded-full shadow-sm"
                               />
-                              <div>
+                              <div className="ml-4">
                                 {organizer.name && (
-                                  <h4 className="font-semibold text-gray-700">
+                                  <h4 className="text-lg font-semibold text-gray-800">
                                     {organizer.name}
                                   </h4>
                                 )}
+
+                                {/* Organizer Type with Tag Style */}
+                                {organizer.type && (
+                                  <span className="inline-block px-3 py-1 mt-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
+                                    {organizer.type.replace(/_/g, " ")}
+                                  </span>
+                                )}
+
                                 {organizer.title && (
-                                  <p className="text-sm text-gray-600">
+                                  <p className="mt-1 text-sm text-gray-600">
                                     {organizer.title}
                                   </p>
                                 )}
+
                                 {organizer.bio && (
-                                  <p className="mt-2 text-sm text-gray-600">
+                                  <p className="mt-2 text-sm leading-tight text-gray-600">
                                     {organizer.bio}
                                   </p>
                                 )}
+
                                 {organizer.website && (
                                   <div className="mt-2">
                                     <a
                                       href={organizer.website}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-blue-600 underline"
+                                      className="text-sm font-medium text-blue-500 hover:underline"
                                     >
                                       Visit {organizer.name} Website
                                     </a>
                                   </div>
                                 )}
+
                                 {organizer.contact && (
-                                  <p className="text-sm text-gray-600">
-                                    Contact: {organizer.contact}
+                                  <p className="mt-1 text-sm text-gray-500">
+                                    📞 {organizer.contact}
                                   </p>
                                 )}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
-          </div>
+                )}
+            </div>
 
-          {/* required materials section */}
-          {activity.required_materials &&
-            activity.required_materials.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Required Materials
-                </h3>
-                <ul className="mt-2 space-y-2">
-                  {activity.required_materials.map((material, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
-                    >
-                      <FaCheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                      <span className="text-gray-700">{material}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-          {/* participant criteria section */}
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Participant Criteria
-            </h3>
-            <div className="mt-4 space-y-4">
-              {/* eligibility */}
-              {activity.eligibility && (
-                <div className="flex items-start">
-                  <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-blue-500" />
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-800">
-                      Eligibility
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {activity.eligibility}
-                    </p>
-                  </div>
+            {/* required materials section */}
+            {activity.required_materials &&
+              activity.required_materials.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Required Materials
+                  </h3>
+                  <ul className="mt-2 space-y-2">
+                    {activity.required_materials.map((material, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200"
+                      >
+                        <FaCheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                        <span className="text-gray-700">{material}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
-              {/* max participants */}
-              {activity.max_participants && (
-                <div className="flex items-start">
-                  <FaUserFriends className="w-5 h-5 mt-1 mr-3 text-green-500" />
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-800">
-                      Maximum Participants
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {activity.max_participants}
-                    </p>
+            {/* participant criteria section */}
+            
+            {(activity.eligibility || activity.max_participants > 0) && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Participant Criteria
+              </h3>
+              <div className="mt-4 space-y-4">
+                {/* eligibility */}
+                {activity.eligibility && (
+                  <div className="flex items-start">
+                    <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-blue-500" />
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-800">
+                        Eligibility
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {activity.eligibility}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* special requirements */}
-              {/* {activity.special_requirements && (
+                {/* max participants */}
+                {activity.max_participants > 0 && (
+                  <div className="flex items-start">
+                    <FaUserFriends className="w-5 h-5 mt-1 mr-3 text-green-500" />
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-800">
+                        Maximum Participants
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {activity.max_participants}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* special requirements */}
+                {/* {activity.special_requirements && (
                 <div className="flex items-start">
                   <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-red-500" />
                   <div>
@@ -356,52 +365,69 @@ const ActivityDetailPage = () => {
                   </div>
                 </div>
               )}   */}
+              </div>
             </div>
-          </div>
-
-          {/* files section */}
-          {activity.files && activity.files.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">Files</h3>
-              <ul className="mt-2 space-y-2">
-                {activity.files.map((file) => (
-                  <li className="flex items-center justify-between p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200">
-                    <div className="flex items-center">
-                      {renderFileIcon(file.fileName)}
-                      <span className="ml-3 text-gray-700">
-                        {file.fileName}
-                      </span>
-                    </div>
-                    <a
-                      href={file.fileUrl}
-                      download
-                      className="text-sm text-blue-500 hover:underline"
-                    >
-                      Download
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-10">
-            <button className="px-6 py-2 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900">
-              Register Now
-            </button>
+            )}
             
-            {role === "admin" || role === "staff" || role === "coordinator" ? (
-            <div className="flex items-center gap-4 text-gray-600">
-              <MdEdit className="w-6 h-6 transition cursor-pointer hover:text-blue-600" />
-              <MdDelete
-                className="w-6 h-6 transition cursor-pointer hover:text-red-600"
-                onClick={() => deleteActivity(activity.id)}
-              />
+            {/* files section */}
+            {activity.files && activity.files.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-800">Files</h3>
+                <ul className="mt-2 space-y-2">
+                  {activity.files.map((file) => (
+                    <li className="flex items-center justify-between p-3 transition bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200">
+                      <div className="flex items-center">
+                        {renderFileIcon(file.fileName)}
+                        <span className="ml-3 text-gray-700">
+                          {file.fileName}
+                        </span>
+                      </div>
+                      <a
+                        href={file.fileUrl}
+                        download
+                        className="text-sm text-blue-500 hover:underline"
+                      >
+                        Download
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mt-10">
+              <button className="px-6 py-2 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900">
+                Register Now
+              </button>
+
+              {role === "admin" ||
+              role === "staff" ||
+              role === "coordinator" ? (
+                <div className="flex items-center gap-4 text-gray-600">
+                  <MdEdit className="w-6 h-6 transition cursor-pointer hover:text-blue-600"  onClick={() => editActivity(activity.id)}/>
+                  <MdDelete
+                    className="w-6 h-6 transition cursor-pointer hover:text-red-600"
+                    onClick={() => deleteActivity(activity.id)}
+                  />
+                </div>
+              ) : null}
             </div>
-            ) : null }
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === "attendance" && <AttendancePage />}
+
+      {activeTab === "qrcode" && (
+        <QrCodeCard
+          name="Caleb Kibet"
+          institutionId="123456"
+          activityName={activity.activity_name}
+          qrValue={activity.name}
+        />
+      )}
+
+      {activeTab == "QrCode Scanner" && <QrCodeScanner />}
     </div>
   );
 };

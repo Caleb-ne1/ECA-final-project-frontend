@@ -29,6 +29,7 @@ import ViewUserDetails from './components/admin/ViewUserDetails';
 import ProtectedRoute from './components/ProtectedRoute';
 import ManageActivities from './components/admin/ManageActivities';
 import MyActivities from './components/common/MyActivities';
+import EditActivity from './components/common/EditActivity';
 
 function App() {
   const location = useLocation();
@@ -70,6 +71,7 @@ function App() {
         <Route path="/admin/create activity" element={<CreateActivity />} />
         <Route path="/manage activities" element={<ManageActivities />} />
         <Route path ="/my/activities" element = {<MyActivities />} />
+        <Route path="/activity/edit" element = {<EditActivity />} />
         <Route
           path="/extracurricular activities"
           element={<ExtracurricularActivities />}
