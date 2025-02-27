@@ -1,51 +1,64 @@
-import React, {useState } from 'react'
+import React, { useState } from "react";
 import { RxActivityLog } from "react-icons/rx";
+import DashboardSummary from "./DashboardSummary";
+import ActivitiesChart from "./ActivitiesChart";
+import AttendanceChart from "./AttendanceChart";
+import StudentParticipationChart from "./StudentParticipationChart";
+import Timeline from "./Timeline";
+import UpcomingActivities from "../common/UpcomingActivities";
+import DashboardHeader from "../common/DashboardHeader";
 
 export default function AdminDashboard() {
+  //mock data
+  const activityData = [5, 10, 7, 15, 20, 12, 25, 18, 22, 30, 28, 35];
+  const attendanceData = [
+    { activity: "Football", attendance: 85 },
+    { activity: "Chess Club", attendance: 70 },
+    { activity: "Music", attendance: 90 },
+    { activity: "Drama", attendance: 60 },
+    { activity: "Science Club", attendance: 75 },
+  ];
   
-  const [upcomingActivities, setupcomingActivities] = useState([])
+  const eventData = [
+    { title: "Caleb Kibet Registered", description: "Joined Chess Club", timestamp: "2025-02-27 10:30 AM" },
+    { title: "Football Activity Created", description: "Coach Alex added a new football session", timestamp: "2025-02-26 3:15 PM" },
+    { title: "Attendance Marked", description: "40 students attended Music Class", timestamp: "2025-02-25 9:00 AM" },
+  ];
+
+  const participationData = [
+    { activity: "Football", percentage: 30 },
+    { activity: "Chess Club", percentage: 15 },
+    { activity: "Music", percentage: 20 },
+    { activity: "Drama", percentage: 10 },
+    { activity: "Science Club", percentage: 25 },
+  ];
+
+  const upcomingActivities = [
+    { name: "Football Match", date: "March 5, 2025", time: "4:00 PM", location: "School Stadium" },
+    { name: "Music Concert", date: "March 10, 2025", time: "6:30 PM", location: "Auditorium" },
+    { name: "Chess Tournament", date: "March 15, 2025", time: "2:00 PM", location: "Library Hall" },
+  ];
+
   const user = sessionStorage.getItem("user");
   const userData = JSON.parse(user);
 
   return (
-   <div className="p-4 student-dashboard-container">
-         <h1 className="mb-6 text-2xl font-bold text-blue-800">
-           Hi, {userData.username}! 👋
-         </h1>
-   
-         {/* Timeline Section */}
-         <div className="p-5 bg-white">
-           <h1 className="mb-4 text-lg font-bold text-gray-800">Timeline</h1>
-           <div className="mb-4">
-             <select
-               name="option"
-               className="w-full p-2 border border-gray-300 rounded-md shadow-sm activity_select_opt md:w-auto focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-             >
-               <option value="">Next 7 days</option>
-               <option value="">Next 30 days</option>
-             </select>
-           </div>
-   
-           <hr className="my-4 border-gray-300" />
-   
-           <div>
-             {upcomingActivities.length > 0 ? (
-               <div className="text-gray-800">
-                 {" "}
-                 
-                 {upcomingActivities.map((activity, index) => (
-                   <p key={index}>{activity}</p>
-                 ))}
-               </div>
-             ) : (
-               <div className="flex flex-col items-center p-10 text-center text-gray-500">
-                 <RxActivityLog className="mb-4 text-4xl" />
-                 <p className="text-xl font-light">No activities</p>
-               </div>
-             )}
-           </div>
-         </div>
-       </div>
+    <div className="p-4 student-dashboard-container flex flex-col gap-5">
+      <DashboardHeader userData={userData} />
+
+      <UpcomingActivities activities={upcomingActivities} />
+
+      <DashboardSummary
+        totalStudents={200}
+        totalActivities={10}
+        popularActivity="Basketball"
+        recentRegistrations={15}
+        attendanceRate={85}
+      />
+      <Timeline events={eventData} />
+      <ActivitiesChart monthlyData={activityData} />
+      <AttendanceChart attendanceData={attendanceData} />
+      <StudentParticipationChart participationData={participationData} />
+    </div>
   );
 }
-
