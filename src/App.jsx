@@ -30,7 +30,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ManageActivities from './components/admin/ManageActivities';
 import MyActivities from './components/common/MyActivities';
 import EditActivity from './components/common/EditActivity';
-
+import AnnouncementsPage from './components/common/AnnouncementsPage';
+import NotificationsPage from './components/common/NotificationsPage';
 function App() {
   const location = useLocation();
   const noNavbar = ['/', '/enter_your_email', "/verify_otp", "/set_new_password", "/register", "/registration_pending"];
@@ -72,6 +73,8 @@ function App() {
         <Route path="/manage activities" element={<ManageActivities />} />
         <Route path ="/my/activities" element = {<MyActivities />} />
         <Route path="/activity/edit" element = {<EditActivity />} />
+        <Route path="/announcements" element={<AnnouncementsPage />} />
+        <Route path='/notifications' element={<NotificationsPage />} />
         <Route
           path="/extracurricular activities"
           element={<ExtracurricularActivities />}
