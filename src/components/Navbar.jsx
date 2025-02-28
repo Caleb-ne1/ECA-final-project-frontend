@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUser } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
 import { IoIosNotifications } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [role, setRole] = useState("");
@@ -15,21 +15,21 @@ const Navbar = () => {
 
   // Fetch user role
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
-      withCredentials: true, // Send cookies if you're using sessions
-    })
-    .then((response) => {
-      // Assuming the response contains the user data with a 'role' field
-      if (response.data && response.data.user && response.data.user.role) {
-        setRole(response.data.user.role); 
-      } else {
-        console.error("Role not found in user data.");
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching user data:", error);
-      setRole(null); 
-    })
+    axios
+      .get(`${import.meta.env.VITE_APP_API_URL}/api/user/auth/me`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.data?.user?.role) {
+          setRole(response.data.user.role);
+        } else {
+          console.error("Role not found in user data.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        setRole(null);
+      });
   }, []);
 
   // Logout
@@ -47,7 +47,7 @@ const Navbar = () => {
       );
 
       if (response.status === 200) {
-        sessionStorage.removeItem('user')
+        sessionStorage.removeItem("user");
         window.location.href = "/";
       }
     } catch (error) {
@@ -117,7 +117,7 @@ const Navbar = () => {
                   <a href="">Calendar</a>
                 </li>
                 <li>
-                  <a href="">Announcements</a>
+                  <a href="/announcements">Announcements</a>
                 </li>
               </ul>
             ) : role === "teacher" || role === "coordinator" ? (
@@ -128,15 +128,12 @@ const Navbar = () => {
                 <li>
                   <a href="/my">Dashboard</a>
                 </li>
-
                 <li>
                   <a href="">Available Activities</a>
                 </li>
-
                 <li>
                   <a href="/my/activities">My activities</a>
                 </li>
-                
                 <li>
                   <a href="">Calendar</a>
                 </li>
@@ -170,24 +167,27 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Profile Section */}
-      <div className="relative group ">
-        <div className="flex flex-row gap-2">
+      {/* Notification & Profile Section */}
+      <div className="flex items-center gap-4">
+        <a href="/notifications">
+          <IoIosNotifications className="w-8 h-8 text-white cursor-pointer" />
+        </a>
+        <div className="relative group">
           <FaUser className="w-8 h-8 text-white cursor-pointer" />
-        </div>
-        <div className="absolute right-0 hidden w-40 py-2 bg-white rounded-lg shadow-lg group-hover:block">
-          <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
-            <a href="user/profile">Profile</a>
-          </p>
-          <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
-            Settings
-          </p>
-          <p
-            className="px-4 py-2 text-sm text-red-500 cursor-pointer hover:bg-red-100"
-            onClick={userLogout}
-          >
-            Logout
-          </p>
+          <div className="absolute right-0 hidden w-40 py-2 bg-white rounded-lg shadow-lg group-hover:block">
+            <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
+              <a href="user/profile">Profile</a>
+            </p>
+            <p className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100">
+              Settings
+            </p>
+            <p
+              className="px-4 py-2 text-sm text-red-500 cursor-pointer hover:bg-red-100"
+              onClick={userLogout}
+            >
+              Logout
+            </p>
+          </div>
         </div>
       </div>
     </nav>
