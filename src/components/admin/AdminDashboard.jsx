@@ -43,14 +43,10 @@ export default function AdminDashboard() {
       <UpcomingActivities />
 
       <DashboardSummary
-        totalStudents={200}
-        totalActivities={10}
-        popularActivity="Basketball"
-        recentRegistrations={15}
         attendanceRate={85}
       />
       <Timeline events={eventData} />
-      <ActivitiesChart monthlyData={activityData} />
+      <ActivitiesChart />
       <AttendanceChart attendanceData={attendanceData} />
       <StudentParticipationChart participationData={participationData} />
     </div>
