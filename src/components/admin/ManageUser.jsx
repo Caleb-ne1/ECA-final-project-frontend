@@ -196,50 +196,6 @@ const ManageUser = () => {
               />
             </div>
 
-            {/* Filter */}
-            <div className="action_bar_btns">
-              <button
-                className="flex items-center gap-2 px-4 py-2 text-white rounded-md bg-blue-950 hover:bg-blue-900"
-                onClick={() =>
-                  setShowFilterBox(!showFilterBox) & setShowExportBox(false)
-                }
-              >
-                <FaFilter />
-                <p>Filter</p>
-              </button>
-
-              {/* Filter Floating Box */}
-              {showFilterBox && (
-                <div className="absolute z-10 w-56 p-4 bg-white border border-gray-300 rounded-lg shadow-md right-42 top-56">
-                  <p className="mb-3 font-semibold text-gray-700">By Role</p>
-                  <form className="space-y-2">
-                    {[
-                      "student",
-                      "staff",
-                      "admin",
-                      "coordinator",
-                    ].map((role) => (
-                      <div key={role} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          name={role.toLowerCase()}
-                          id={role.toLowerCase()}
-                          value={role}
-                          onChange={(e) => setFilter(e.target.value)}
-                        />
-                        <label
-                          htmlFor={role.toLowerCase()}
-                          className="text-gray-600"
-                        >
-                          {role}
-                        </label>
-                      </div>
-                    ))}
-                  </form>
-                </div>
-              )}
-            </div>
-
             {/* Export Options */}
             <div className="relative">
               <button
