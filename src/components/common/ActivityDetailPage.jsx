@@ -72,12 +72,12 @@ const ActivityDetailPage = () => {
   };
 
   const navigate = useNavigate();
-  
+
   // edit activity
   const editActivity = async (id) => {
     window.location.href = `/activity/edit?id=${encodeURIComponent(id)}`;
-  }
-      
+  };
+
   // delete activity
   const deleteActivity = async (id) => {
     Swal.fire({
@@ -131,7 +131,7 @@ const ActivityDetailPage = () => {
     <div className="min-h-screen p-6 mt-16 bg-gray-50">
       {/* Tabs */}
       <div className="flex justify-center pb-2 space-x-6 overflow-auto border-b">
-        {["details", "attendance", "qrcode", "QrCode Scanner"].map((tab) => (
+        {["details", "attendance", ...(activity.attendance_marking_qrcode ? ["qrcode"] : []), "QrCode Scanner"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -174,8 +174,14 @@ const ActivityDetailPage = () => {
               {formattedDateTime(activity.stop)}
             </p>
             <p className="mt-1 text-sm text-gray-600">
-              <span className="font-medium">Registered deadline:</span>{" "}
-              {formattedDateTime(activity.registration_deadline)}
+              <span className="font-medium">Registration deadline:</span>{" "}
+              {new Date(activity.registration_deadline) < new Date() ? (
+                <span className="font-semibold text-red-600">
+                  Registration Closed
+                </span>
+              ) : (
+                formattedDateTime(activity.registration_deadline)
+              )}
             </p>
             <p className="mt-1 text-sm text-gray-600">
               <span className="font-medium">Activity type:</span>{" "}
@@ -310,45 +316,45 @@ const ActivityDetailPage = () => {
               )}
 
             {/* participant criteria section */}
-            
-            {(activity.eligibility || activity.max_participants > 0) && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Participant Criteria
-              </h3>
-              <div className="mt-4 space-y-4">
-                {/* eligibility */}
-                {activity.eligibility && (
-                  <div className="flex items-start">
-                    <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-blue-500" />
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-800">
-                        Eligibility
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {activity.eligibility}
-                      </p>
-                    </div>
-                  </div>
-                )}
 
-                {/* max participants */}
-                {activity.max_participants > 0 && (
-                  <div className="flex items-start">
-                    <FaUserFriends className="w-5 h-5 mt-1 mr-3 text-green-500" />
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-800">
-                        Maximum Participants
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {activity.max_participants}
-                      </p>
+            {(activity.eligibility || activity.max_participants > 0) && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Participant Criteria
+                </h3>
+                <div className="mt-4 space-y-4">
+                  {/* eligibility */}
+                  {activity.eligibility && (
+                    <div className="flex items-start">
+                      <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-blue-500" />
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-800">
+                          Eligibility
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {activity.eligibility}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {/* special requirements */}
-                {/* {activity.special_requirements && (
+                  )}
+
+                  {/* max participants */}
+                  {activity.max_participants > 0 && (
+                    <div className="flex items-start">
+                      <FaUserFriends className="w-5 h-5 mt-1 mr-3 text-green-500" />
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-800">
+                          Maximum Participants
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {activity.max_participants}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* special requirements */}
+                  {/* {activity.special_requirements && (
                 <div className="flex items-start">
                   <FaClipboardCheck className="w-5 h-5 mt-1 mr-3 text-red-500" />
                   <div>
@@ -365,10 +371,10 @@ const ActivityDetailPage = () => {
                   </div>
                 </div>
               )}   */}
+                </div>
               </div>
-            </div>
             )}
-            
+
             {/* files section */}
             {activity.files && activity.files.length > 0 && (
               <div className="mt-6">
@@ -396,7 +402,10 @@ const ActivityDetailPage = () => {
             )}
 
             <div className="flex items-center justify-between mt-10">
-              <button className="px-6 py-2 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900">
+              <button
+                className="px-6 py-2 text-white transition duration-200 rounded-lg shadow bg-blue-950 hover:bg-blue-900 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                disabled={new Date(activity.registration_deadline) < new Date()}
+              >
                 Register Now
               </button>
 
@@ -404,7 +413,10 @@ const ActivityDetailPage = () => {
               role === "staff" ||
               role === "coordinator" ? (
                 <div className="flex items-center gap-4 text-gray-600">
-                  <MdEdit className="w-6 h-6 transition cursor-pointer hover:text-blue-600"  onClick={() => editActivity(activity.id)}/>
+                  <MdEdit
+                    className="w-6 h-6 transition cursor-pointer hover:text-blue-600"
+                    onClick={() => editActivity(activity.id)}
+                  />
                   <MdDelete
                     className="w-6 h-6 transition cursor-pointer hover:text-red-600"
                     onClick={() => deleteActivity(activity.id)}
