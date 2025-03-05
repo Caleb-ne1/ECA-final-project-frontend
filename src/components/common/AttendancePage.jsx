@@ -48,7 +48,7 @@ const AttendancePage = () => {
   const percentage = ((totalPoints / maxPoints) * 100).toFixed(1);
 
   return (
-    <div className="max-w-4xl p-4 mx-auto mt-6 bg-white rounded-lg shadow-md">
+    <div className="p-4 mx-auto mt-6">
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full border border-collapse border-gray-300">

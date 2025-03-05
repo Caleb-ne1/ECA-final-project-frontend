@@ -223,6 +223,7 @@ const CreateActivity = () => {
   const [eligibility, setEligibility] = useState("");
   const [maxparticipants, setmaxparticipants] = useState("");
   const [registrationDeadline, setRegistrationDeadline] = useState("");
+  const [registration_status, setRegistrationStatus] = useState("pending")
   const [start, setstart] = useState("");
   const [stop, setstop] = useState("");
   const [specialrequirements, setspecialrequirements] = useState([]);
@@ -253,6 +254,7 @@ const CreateActivity = () => {
     formData.append("activity_type", activityType);
     formData.append("activity_description", activityDescription);
     formData.append("eligibility", eligibility);
+    formData.append("registration_status", registration_status);
     formData.append("max_participants", maxparticipants);
     formData.append(
       "registration_deadline",
@@ -314,6 +316,8 @@ const CreateActivity = () => {
       }
     }
   };
+
+  const statusOptions = ["pending", "approved"];
 
   return (
     <div className="pt-16 pl-10 pr-10 create_activity_cont">
@@ -424,7 +428,26 @@ const CreateActivity = () => {
                     className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   />
                 </div>
+
+      
               </div>
+
+              <div className="group">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Registration status
+                  </label>
+                  <select
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={registration_status}
+                    onChange={(e) => setRegistrationStatus(e.target.value)}
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
             </div>
           )}
         </div>

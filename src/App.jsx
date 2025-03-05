@@ -44,7 +44,7 @@ function App() {
     "/registration_pending",
   ];
   return (
-    <div className="flex flex-col min-h-screen App bg-slate-100">
+    <div className="flex flex-col min-h-screen bg-white App">
       {!noNavbar.includes(location.pathname) && <Navbar />}
       <Routes>
         <Route path="/" element={<Login />} />

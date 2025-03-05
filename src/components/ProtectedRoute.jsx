@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import axios from "axios";
-
+import LoadingScreen from "../pages/LoadingScreen";
 const ProtectedRoute = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ const ProtectedRoute = () => {
   }, []);
 
   if (loading) {
-    return <p>Loading...</p>; 
+    return <LoadingScreen />; 
   }
 
   return user ? <Outlet /> : <Navigate to="/" />;

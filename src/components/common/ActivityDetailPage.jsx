@@ -13,6 +13,8 @@ import QrCodeCard from "./QrCodeCard";
 import { useNavigate } from "react-router-dom";
 import AttendancePage from "./AttendancePage";
 import QrCodeScanner from "./QrCodeScanner";
+import ParticipantsList from "../coordinator/ParticipantsList";
+import LoadingScreen from "../../pages/LoadingScreen";
 
 const ActivityDetailPage = () => {
   const [role, setRole] = useState("");
@@ -127,24 +129,36 @@ const ActivityDetailPage = () => {
     return <p className="text-center text-gray-500">No activity selected.</p>;
   }
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="min-h-screen p-6 mt-16 bg-gray-50">
       {/* Tabs */}
-      <div className="flex justify-center pb-2 space-x-6 overflow-auto border-b">
-        {["details", "attendance", ...(activity.attendance_marking_qrcode ? ["qrcode"] : []), "QrCode Scanner"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-sm font-medium px-4 py-2 rounded-t-lg transition-all duration-300 
-              ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-blue-600"
-              }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+      <div className="flex justify-center px-2 pb-2 overflow-x-auto border-b">
+        <div className="flex space-x-4 sm:space-x-6 whitespace-nowrap">
+          {[
+            "details",
+            "attendance",
+            "Participants List",
+            ...(activity.attendance_marking_qrcode ? ["qrcode"] : []),
+            "QrCode Scanner",
+          ].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`text-sm font-medium px-4 py-2 rounded-t-lg transition-all duration-300
+          ${
+            activeTab === tab
+              ? "border-b-2 border-blue-600 text-blue-600"
+              : "text-gray-600 hover:text-blue-600"
+          }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {activeTab === "details" && (
@@ -429,7 +443,7 @@ const ActivityDetailPage = () => {
       )}
 
       {activeTab === "attendance" && <AttendancePage />}
-
+      {activeTab === "Participants List" && <ParticipantsList />}
       {activeTab === "qrcode" && (
         <QrCodeCard
           name="Caleb Kibet"

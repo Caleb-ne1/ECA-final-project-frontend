@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { IoIosAdd } from "react-icons/io";
 import axios from "axios";
 import { FaMapMarkerAlt, FaVideo } from "react-icons/fa";
+import LoadingScreen from "../../pages/LoadingScreen";
 
 const MyActivities = () => {
   const [role, setRole] = useState("");
@@ -73,16 +74,14 @@ const MyActivities = () => {
     : activities;
 
   if (loading) {
-    return (
-      <div className="text-center text-gray-500 ">Loading activities...</div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
   }
   return (
-    <div className="pt-16 pl-10">
+    <div className="min-h-screen p-6 pt-16 pl-10">
       {role === "admin" || role === "staff" || role === "coordinator" ? (
         <div>
           <a
@@ -111,24 +110,23 @@ const MyActivities = () => {
           </div>
 
           {/* activity grid */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="overflow-hidden bg-white rounded-lg"
+                className="overflow-hidden transition bg-white shadow-md rounded-xl hover:shadow-lg"
               >
                 <img
                   src={activity.image_link}
                   alt={activity.activity_name}
-                  className="object-cover w-full h-48"
+                  className="object-cover w-full h-48 rounded-t-xl"
                 />
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold text-gray-800">
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     {activity.activity_name}
-                  </h2>
+                  </h3>
                   <p className="mt-1 text-sm text-gray-600">
                     <span className="font-medium">Date:</span>{" "}
-                    {formattedDateTime(activity.start)} -{" "}
                     {formattedDateTime(activity.start)}
                   </p>
                   <p className="mt-1 text-sm text-gray-600">
@@ -141,10 +139,16 @@ const MyActivities = () => {
                       formattedDateTime(activity.registration_deadline)
                     )}
                   </p>
-                  {activity.mode == "online" ? (
+
+                  {activity.mode === "online" ? (
                     <div className="flex items-center mt-2 text-blue-600">
                       <FaVideo className="w-5 h-5 mr-2" />
-                      <a href={activity.virtual_link}>Virtual Event</a>
+                      <a
+                        href={activity.virtual_link}
+                        className="hover:underline"
+                      >
+                        Virtual Event
+                      </a>
                     </div>
                   ) : (
                     <div className="flex items-center mt-2 text-green-600">
@@ -152,9 +156,10 @@ const MyActivities = () => {
                       <span>{activity.venue}</span>
                     </div>
                   )}
+
                   <button
-                    className="px-4 py-2 mt-4 text-white transition rounded-lg bg-blue-950 hover:bg-blue-900"
                     onClick={() => ViewActivity(activity.id)}
+                    className="w-full px-4 py-2 mt-4 text-white transition bg-blue-950 hover:bg-blue-900"
                   >
                     View Details
                   </button>

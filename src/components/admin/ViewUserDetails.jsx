@@ -1,119 +1,98 @@
-import React, {useState, useEffect} from 'react'
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaUser } from "react-icons/fa";
+import LoadingScreen from "../../pages/LoadingScreen";
 
 function ViewUserDetails() {
-    const [user, setUser] = useState({
-        FirstName: "",
-        LastName: "",
-        email: "",
-        phone: "",
-        username: "",
-        role: "",
-        institution_id: "",
-        program_of_study: "",
-        year_of_study: "",
-    });
+  const [user, setUser] = useState(null);
 
-    //get id from url
-    const queryParams = new URLSearchParams(window.location.search);
-    const id = queryParams.get("id")
+  // Get id from URL
+  const queryParams = new URLSearchParams(window.location.search);
+  const id = queryParams.get("id");
 
-    // fetch details by id
-    const fetch_user_details = async () => {
-        try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_APP_API_URL}/api/user/me/${id}`
-            );
-        
-            if(response.status === 200) {
-                const data = response.data.user;
-
-                setUser({
-                        id: data.id,
-                        FirstName: data.FirstName,
-                        LastName: data.LastName,
-                        email: data.email,
-                        phone: data.phone,
-                        username: data.username,
-                        role: data.role,
-                        institution_id: data.institution_id,
-                        program_of_study: data.program_of_study,
-                        year_of_study: data.year_of_study
-                    })
-            }
-
-        } catch (error) {
-            console.error("Error fetching user details", error)
-        }
+  // Fetch user details by id
+  const fetchUserDetails = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_APP_API_URL}/api/user/me/${id}`
+      );
+      if (response.status === 200) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      console.error("Error fetching user details", error);
     }
+  };
 
-    useEffect(() => {
-        fetch_user_details()
-    }, [])
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
+
+  if (!user) {
+    return (
+      <LoadingScreen />
+    );
+  }
 
   return (
-
-    <div>
-    {user && (
-    <div className="mt-20 pl-10 pr-10 overflow-hidden">
-        <div className="flex items-center justify-between p-2 bg-gray-600 rounded-lg ">
-            <div className='pl-6'>
-                <h4 className='text-white'>User details</h4>
-            </div>
-            <div className='flex flex-row items-center gap-2 pr-6'>
-                <FaUser className="text-white text-3xl" />
-                <p className="text-white font-medium">{user.role}</p>
-            </div>
-        </div>
-
-      {/* Personal information */}
-      <div className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
-        <div className="grid grid-cols-2 gap-4 personal_info_group">
+    <div className="flex items-center justify-center min-h-screen p-6 mt-16">
+      <div className="w-full max-w-3xl overflow-hidden">
+        {/* Header Section */}
+        <div className="flex items-center justify-between p-6 text-white bg-purple-700">
           <div>
-            <p className="font-semibold">First Name</p>
-            <p>{user.FirstName}</p>
+            <h4 className="text-xl font-semibold">User Details</h4>
+            <p className="text-sm text-gray-200">{user.role}</p>
           </div>
-          <div>
-            <p className="font-semibold">Last Name</p>
-            <p>{user.LastName}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Email Address</p>
-            <p>{user.email}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Phone</p>
-            <p>{user.phone}</p>
+          <div className="flex items-center gap-3">
+            <FaUser className="text-4xl" />
           </div>
         </div>
 
-        {/* academic information */}
-        <h2 className="text-lg font-semibold mt-6 mb-4">Academic Information</h2>
-        <div className="grid grid-cols-2 gap-4 academic_info_group">
-          <div>
-            <p className="font-semibold">Institution ID</p>
-            <p>{user.institution_id}</p>
+        {/* Personal Information */}
+        <div className="p-6">
+          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            Personal Information
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DetailItem label="First Name" value={user.FirstName} />
+            <DetailItem label="Last Name" value={user.LastName} />
+            <DetailItem label="Email Address" value={user.email} />
+            <DetailItem label="Phone" value={user.phone} />
+            <DetailItem label="Username" value={user.username} />
           </div>
-          <div>
-            <p className="font-semibold">Program Of Study</p>
-            <p>Diploma in Software Engineering</p>
+        </div>
+
+        {/* Academic Information */}
+        <div className="p-6 border-t border-gray-200">
+          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            Academic Information
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DetailItem label="Institution ID" value={user.institution_id} />
+            <DetailItem label="Program of Study" value={user.program_of_study} />
+            <DetailItem label="Year of Study" value={user.year_of_study} />
           </div>
-          
-          <div>
-            <p className="font-semibold">Year Of Study</p>
-            <p>{user.year_of_study}</p>
-          </div>
+        </div>
+
+        {/* Edit Button */}
+        <div className="flex justify-end p-6 border-t border-gray-200">
+          <a
+            href={`/edit?id=${user.id}`}
+            className="px-4 py-2 text-white transition duration-300 rounded-lg bg-blue-950 hover:bg-blue-900"
+          >
+            Edit User
+          </a>
         </div>
       </div>
-
-      {/* edit user */}
-      <a href={`/edit?id=${user.id}`} className='text-blue-700 underline pl-6 mt-10 mb-10'>Edit</a>
     </div>
-    )}
-    </div>
-  )
+  );
 }
 
-export default ViewUserDetails
+const DetailItem = ({ label, value }) => (
+  <div>
+    <p className="text-sm font-medium text-gray-500">{label}</p>
+    <p className="text-lg text-gray-800">{value || "N/A"}</p>
+  </div>
+);
+
+export default ViewUserDetails;

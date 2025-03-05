@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from "react";
 import { IoMdSearch } from "react-icons/io";
 import { FaFilter } from "react-icons/fa";
 import { BiExport } from "react-icons/bi";
 import { BsThreeDots } from "react-icons/bs";
-import  axios  from 'axios';
+import axios from "axios";
 import { GrFormPrevious } from "react-icons/gr";
 import { GrFormNext } from "react-icons/gr";
-import { CSVLink } from 'react-csv';
+import { CSVLink } from "react-csv";
 import { IoMdAdd } from "react-icons/io";
-import AddUserOptionModal from './AddUserOptionModal';
-import ConfirmDeleteModal from '../../pages/ConfirmDeleteModel';
+import AddUserOptionModal from "./AddUserOptionModal";
+import ConfirmDeleteModal from "../../pages/ConfirmDeleteModel";
 import { GrFormView } from "react-icons/gr";
 import { FaEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
-import StatusUpdateModal from './StatusUpdateModal';
+import StatusUpdateModal from "./StatusUpdateModal";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 
@@ -29,13 +29,12 @@ const ManageUser = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("");
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setselectedOption] = useState("");
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [message, setMessage] = useState("");
@@ -43,7 +42,7 @@ const ManageUser = () => {
   //delete modal
   const handleDeleteClick = (userId) => {
     setSelectedUserId(userId);
-    setModalOpen(true); 
+    setModalOpen(true);
   };
 
   const handleDeleteConfirm = () => {
@@ -53,30 +52,30 @@ const ManageUser = () => {
   //close delete modal
   const handleModalClose = () => {
     setModalOpen(false);
-    setSelectedUserId(null); 
+    setSelectedUserId(null);
   };
 
   //handle add user modal
   const handleAddUser = () => {
-    setIsOpen(true)
-  }
+    setIsOpen(true);
+  };
 
   //close add user modal
   const handleCloseModal = () => {
     setIsOpen(false);
-  }
+  };
 
   //handle add user options
   const handleSelectOption = (option) => {
-    setselectedOption(option)
+    setselectedOption(option);
     setIsOpen(false);
 
-    if(option === 'manual') {
+    if (option === "manual") {
       window.location.href = "/add_user";
-    } else if (option === 'link') {
+    } else if (option === "link") {
       window.location.href = "/generate_invitation_Link";
     }
-  }
+  };
 
   const ToggleActionBox = (index) => {
     setShowActionBoxIndex((prevIndex) => (prevIndex === index ? null : index));
@@ -111,7 +110,9 @@ const ManageUser = () => {
   const fetchData = async (page, limit) => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_APP_API_URL}/api/user/all?page=${page}&limit=${limit}`
+        `${
+          import.meta.env.VITE_APP_API_URL
+        }/api/user/all?page=${page}&limit=${limit}`
       );
 
       const { results, next } = response.data;
@@ -128,14 +129,14 @@ const ManageUser = () => {
 
   //handle user view details
   const handleViewUser = (id) => {
-    window.location.href = `/view?id=${encodeURIComponent(id)}`
-  }
+    window.location.href = `/view?id=${encodeURIComponent(id)}`;
+  };
 
   //handle edit user
   const handleEditUser = (id) => {
-    window.location.href = `/edit?id=${encodeURIComponent(id)}`
-  }
-  
+    window.location.href = `/edit?id=${encodeURIComponent(id)}`;
+  };
+
   // handle user registration status
   const handleStatusChange = async (e, id) => {
     const newStatus = e.target.value;
@@ -146,8 +147,8 @@ const ManageUser = () => {
         { user_status: newStatus }
       );
 
-      if(response.status === 200) {
-        setMessage(response.data.message); 
+      if (response.status === 200) {
+        setMessage(response.data.message);
         setShowUpdateModal(true);
       }
 
@@ -166,13 +167,13 @@ const ManageUser = () => {
       <div>
         {/* search bar */}
         <div className="flex justify-center p-4 search_bar">
-          <form className="flex flex-row items-center gap-2 p-2 bg-gray-100">
-            <IoMdSearch className="text-xl text-gray-500" />
+          <form className="flex items-center px-4 py-2 transition duration-200 bg-white border border-gray-300 rounded-lg shadow-sm focus-within:border-purple-600">
+            <IoMdSearch className="text-2xl text-gray-500" />
             <input
               type="text"
               name="search"
-              placeholder="Search"
-              className="w-full text-gray-700 placeholder-gray-400 bg-transparent outline-none"
+              placeholder="Search..."
+              className="w-full ml-2 text-gray-700 placeholder-gray-400 bg-transparent outline-none focus:ring-0"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </form>
@@ -355,8 +356,9 @@ const ManageUser = () => {
                             ref={actionBoxRef}
                             className="absolute right-0 z-10 flex flex-col w-32 gap-2 p-2 mt-2 bg-white border border-gray-300 rounded-md shadow-md top-9"
                           >
-                            <button className="flex flex-row items-center gap-2 p-1 text-white bg-blue-600 rounded hover:bg-blue-500" 
-                            onClick={() => handleViewUser(user.id)}
+                            <button
+                              className="flex flex-row items-center gap-2 p-1 text-white bg-blue-600 rounded hover:bg-blue-500"
+                              onClick={() => handleViewUser(user.id)}
                             >
                               <GrFormView />
                               View
@@ -435,6 +437,6 @@ const ManageUser = () => {
       )}
     </div>
   );
-}
+};
 
 export default ManageUser;

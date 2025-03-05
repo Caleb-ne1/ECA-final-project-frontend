@@ -46,9 +46,9 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container bg-white">
+    <div className="bg-white login-container">
       <div className="left_container">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        <h1 className="mb-6 text-2xl font-bold text-center text-gray-800">
           Welcome Back
         </h1>
         {error && (
@@ -56,33 +56,41 @@ const Login = () => {
             <p>{error}</p>
           </div>
         )}
-        <form onSubmit={handleSubmit}>
-          <div className="group">
-            <FaUser />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex items-center px-4 py-2 border border-gray-300 rounded-lg focus-within:border-blue-500">
+            <FaUser className="text-gray-400" />
             <input
               type="text"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              className="w-full ml-2 bg-transparent outline-none"
               required
             />
           </div>
 
-          <div className="group">
-            <FaLock />
+          <div className="flex items-center px-4 py-2 border border-gray-300 rounded-lg focus-within:border-blue-500">
+            <FaLock className="text-gray-400" />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full ml-2 bg-transparent outline-none"
               required
             />
           </div>
-          <button type="submit">Log in</button>
+
+          <button
+            type="submit"
+            className="w-full py-2 text-white transition duration-300 bg-blue-500 rounded-lg hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed"
+          >
+             Log in
+          </button>
         </form>
         <a
           href="/enter_your_email"
-          className="text-blue-500 hover:text-blue-700 text-sm font-medium underline pt-4"
+          className="pt-4 text-sm font-medium text-blue-500 underline hover:text-blue-700"
         >
           Forgot password?
         </a>
